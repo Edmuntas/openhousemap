@@ -65,3 +65,11 @@ functions/node_modules/
 # OS
 Thumbs.db
 .playwright-mcp/
+
+# Test screenshots
+run*.jpg
+*-test.jpg
+*-test*.jpg
+city-dropdown-test.jpg
+address-dropdown-test.jpg
+photo-uploaded-test.jpg
