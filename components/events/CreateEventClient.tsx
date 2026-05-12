@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   collection,
@@ -13,15 +14,81 @@ import { httpsCallable, getFunctions } from "firebase/functions";
 import ngeohash from "ngeohash";
 import { db, auth, storage, app } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
+import type {
+  PropertyType,
+  EventVisibility,
+} from "@/types/event";
+import {
+  RESIDENTIAL_TYPES,
+  APARTMENT_LIKE_TYPES,
+} from "@/types/event";
+import type { AddressValue } from "./AddressPicker";
 
-type Visibility = "public" | "mixed" | "colleagues";
-type PropertyType = "apartment" | "house" | "penthouse" | "land" | "commercial";
+const AddressPicker = dynamic(() => import("./AddressPicker"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-72 rounded-xl bg-(--color-cream)/30 flex items-center justify-center text-sm text-(--color-moss)">
+      טוען מפה...
+    </div>
+  ),
+});
+
+const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
+  apartment: "דירה",
+  garden_apartment: "דירת גן",
+  penthouse: "פנטהאוז",
+  duplex: "דופלקס",
+  house: "בית פרטי",
+  land: "מגרש",
+  commercial: "מסחרי",
+};
+
+const PROPERTY_TYPE_ORDER: PropertyType[] = [
+  "apartment",
+  "garden_apartment",
+  "penthouse",
+  "duplex",
+  "house",
+  "land",
+  "commercial",
+];
+
+function hasRooms(t: PropertyType): boolean {
+  return RESIDENTIAL_TYPES.includes(t);
+}
+function hasFloors(t: PropertyType): boolean {
+  return APARTMENT_LIKE_TYPES.includes(t) || t === "commercial";
+}
+function hasElevator(t: PropertyType): boolean {
+  return APARTMENT_LIKE_TYPES.includes(t);
+}
+function hasMirpeset(t: PropertyType): boolean {
+  return APARTMENT_LIKE_TYPES.includes(t);
+}
+function hasMamad(t: PropertyType): boolean {
+  return RESIDENTIAL_TYPES.includes(t);
+}
+function hasGardenSize(t: PropertyType): boolean {
+  return t === "garden_apartment";
+}
+function hasRoofTerrace(t: PropertyType): boolean {
+  return t === "penthouse";
+}
+function hasPlotSize(t: PropertyType): boolean {
+  return t === "house" || t === "land";
+}
+function hasGardenPool(t: PropertyType): boolean {
+  return t === "house";
+}
+function hasBuiltSize(t: PropertyType): boolean {
+  return t !== "land";
+}
+function hasBathrooms(t: PropertyType): boolean {
+  return RESIDENTIAL_TYPES.includes(t);
+}
 
 interface FormState {
-  address: string;
-  city: string;
-  lat: string;
-  lng: string;
+  address: AddressValue;
   propertyType: PropertyType;
   price: string;
   rooms: string;
@@ -29,13 +96,21 @@ interface FormState {
   size: string;
   floor: string;
   totalFloors: string;
+  plotSize: string;
+  gardenSize: string;
+  roofTerraceSize: string;
   parking: boolean;
   mamad: boolean;
   mirpeset: boolean;
+  elevator: boolean;
+  ac: boolean;
+  renovated: boolean;
+  garden: boolean;
+  pool: boolean;
   date: string;
   startTime: string;
   endTime: string;
-  visibility: Visibility;
+  visibility: EventVisibility;
   realtorInputText: string;
 }
 
@@ -46,10 +121,7 @@ interface UploadedPhoto {
 }
 
 const initial: FormState = {
-  address: "",
-  city: "",
-  lat: "",
-  lng: "",
+  address: { address: "", city: "", lat: null, lng: null },
   propertyType: "apartment",
   price: "",
   rooms: "",
@@ -57,9 +129,17 @@ const initial: FormState = {
   size: "",
   floor: "",
   totalFloors: "",
+  plotSize: "",
+  gardenSize: "",
+  roofTerraceSize: "",
   parking: false,
   mamad: false,
   mirpeset: false,
+  elevator: false,
+  ac: false,
+  renovated: false,
+  garden: false,
+  pool: false,
   date: "",
   startTime: "17:00",
   endTime: "19:00",
@@ -91,6 +171,8 @@ export default function CreateEventClient() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  const t = form.propertyType;
+
   async function handlePhotos(files: FileList | null) {
     if (!files || !files.length) return;
     setUploading(true);
@@ -103,8 +185,6 @@ export default function CreateEventClient() {
         const r = storageRef(storage, path);
         await uploadBytes(r, f, { contentType: f.type });
         const fullUrl = await getDownloadURL(r);
-        // Resize extension generates 400x300/800x600/1600x1200 in background.
-        // Use the original URL as a placeholder until those propagate.
         uploaded.push({ full: fullUrl, medium: fullUrl, thumb: fullUrl });
       }
       setPhotos((prev) => [...prev, ...uploaded].slice(0, 10));
@@ -126,18 +206,32 @@ export default function CreateEventClient() {
         { description: { he: string; en: string; ru: string } }
       >(functions, "generateDescription");
       const eventData = {
-        address: form.address,
-        city: form.city,
-        propertyType: form.propertyType,
+        address: form.address.address,
+        city: form.address.city,
+        propertyType: t,
         price: Number(form.price),
-        rooms: Number(form.rooms),
-        bathrooms: Number(form.bathrooms),
-        size: Number(form.size),
-        floor: form.floor ? Number(form.floor) : undefined,
-        totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
+        rooms: hasRooms(t) ? Number(form.rooms) || undefined : undefined,
+        bathrooms: hasBathrooms(t) ? Number(form.bathrooms) || undefined : undefined,
+        size: hasBuiltSize(t) ? Number(form.size) || undefined : undefined,
+        floor: hasFloors(t) && form.floor ? Number(form.floor) : undefined,
+        totalFloors:
+          hasFloors(t) && form.totalFloors ? Number(form.totalFloors) : undefined,
+        plotSize:
+          hasPlotSize(t) && form.plotSize ? Number(form.plotSize) : undefined,
+        gardenSize:
+          hasGardenSize(t) && form.gardenSize ? Number(form.gardenSize) : undefined,
+        roofTerraceSize:
+          hasRoofTerrace(t) && form.roofTerraceSize
+            ? Number(form.roofTerraceSize)
+            : undefined,
         parking: form.parking,
-        mamad: form.mamad,
-        mirpeset: form.mirpeset,
+        mamad: hasMamad(t) ? form.mamad : false,
+        mirpeset: hasMirpeset(t) ? form.mirpeset : false,
+        elevator: hasElevator(t) ? form.elevator : false,
+        ac: form.ac,
+        renovated: form.renovated,
+        garden: hasGardenPool(t) ? form.garden : false,
+        pool: hasGardenPool(t) ? form.pool : false,
       };
       const res = await fn({ eventData, realtorInputText: form.realtorInputText });
       setDescHe(res.data.description.he);
@@ -157,44 +251,43 @@ export default function CreateEventClient() {
     setError(null);
     setSubmitting(true);
     try {
-      const lat = Number(form.lat);
-      const lng = Number(form.lng);
-      if (!lat || !lng) throw new Error("נא להזין קואורדינטות (lat, lng)");
+      const { lat, lng } = form.address;
+      if (!lat || !lng) {
+        throw new Error("בחר כתובת מהאוטוקומפליט או לחץ על המפה");
+      }
+      if (!form.address.address || !form.address.city) {
+        throw new Error("חסר פרטי כתובת");
+      }
       const geohash = ngeohash.encode(lat, lng, 9);
       const eventRef = doc(db, "events", eventId);
 
-      // Pull realtor snapshot from /users/{uid}
       const userSnap = await (
         await import("firebase/firestore")
       ).getDoc(doc(db, "users", auth.currentUser.uid));
       const userData = userSnap.exists() ? userSnap.data() : {};
 
-      await setDoc(eventRef, {
+      const docData: Record<string, unknown> = {
         ownerId: auth.currentUser.uid,
-        address: form.address,
-        city: form.city,
+        address: form.address.address,
+        city: form.address.city,
         coordinates: { lat, lng },
         geohash,
-        propertyType: form.propertyType,
+        propertyType: t,
         price: Number(form.price),
-        rooms: Number(form.rooms),
-        bathrooms: Number(form.bathrooms),
-        size: Number(form.size),
-        floor: form.floor ? Number(form.floor) : undefined,
-        totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
         parking: form.parking,
-        mamad: form.mamad,
-        mirpeset: form.mirpeset,
+        mamad: hasMamad(t) ? form.mamad : false,
+        mirpeset: hasMirpeset(t) ? form.mirpeset : false,
+        elevator: hasElevator(t) ? form.elevator : false,
+        ac: form.ac,
+        renovated: form.renovated,
+        garden: hasGardenPool(t) ? form.garden : false,
+        pool: hasGardenPool(t) ? form.pool : false,
         photos,
         date: form.date,
         startTime: form.startTime,
         endTime: form.endTime,
         visibility: form.visibility,
-        description: {
-          he: descHe || "",
-          en: descEn || "",
-          ru: descRu || "",
-        },
+        description: { he: descHe || "", en: descEn || "", ru: descRu || "" },
         realtorInputText: form.realtorInputText,
         status: "active",
         archiveStatus: "active",
@@ -211,7 +304,23 @@ export default function CreateEventClient() {
         },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      };
+
+      if (hasRooms(t) && form.rooms) docData.rooms = Number(form.rooms);
+      if (hasBathrooms(t) && form.bathrooms)
+        docData.bathrooms = Number(form.bathrooms);
+      if (hasBuiltSize(t) && form.size) docData.size = Number(form.size);
+      if (hasFloors(t) && form.floor) docData.floor = Number(form.floor);
+      if (hasFloors(t) && form.totalFloors)
+        docData.totalFloors = Number(form.totalFloors);
+      if (hasPlotSize(t) && form.plotSize)
+        docData.plotSize = Number(form.plotSize);
+      if (hasGardenSize(t) && form.gardenSize)
+        docData.gardenSize = Number(form.gardenSize);
+      if (hasRoofTerrace(t) && form.roofTerraceSize)
+        docData.roofTerraceSize = Number(form.roofTerraceSize);
+
+      await setDoc(eventRef, docData);
       router.push(`/e/${eventId}`);
     } catch (e) {
       console.error(e);
@@ -234,137 +343,165 @@ export default function CreateEventClient() {
       </h1>
 
       <form onSubmit={submit} className="space-y-5">
-        <Field label="כתובת מלאה">
-          <input
-            required
-            type="text"
+        <Field label="סוג נכס">
+          <div className="flex flex-wrap gap-2">
+            {PROPERTY_TYPE_ORDER.map((pt) => (
+              <button
+                key={pt}
+                type="button"
+                onClick={() => update("propertyType", pt)}
+                className={`px-3 py-1.5 rounded-xl text-sm transition-colors ${
+                  t === pt
+                    ? "bg-(--color-moss) text-(--color-ivory)"
+                    : "bg-(--color-cream) text-(--color-deep) hover:bg-(--color-cream)/70"
+                }`}
+              >
+                {PROPERTY_TYPE_LABELS[pt]}
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        <Field label="כתובת">
+          <AddressPicker
             value={form.address}
-            onChange={(e) => update("address", e.target.value)}
-            className="input"
+            onChange={(v) => update("address", v)}
           />
         </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="עיר">
-            <input
-              required
-              type="text"
-              value={form.city}
-              onChange={(e) => update("city", e.target.value)}
-              className="input"
-            />
-          </Field>
-          <Field label="סוג נכס">
-            <select
-              value={form.propertyType}
-              onChange={(e) =>
-                update("propertyType", e.target.value as PropertyType)
-              }
-              className="input"
-            >
-              <option value="apartment">דירה</option>
-              <option value="house">בית פרטי</option>
-              <option value="penthouse">פנטהאוס</option>
-              <option value="land">קרקע</option>
-              <option value="commercial">מסחרי</option>
-            </select>
-          </Field>
-        </div>
+        <Field label="מחיר (₪)">
+          <input
+            required
+            type="number"
+            min="1"
+            value={form.price}
+            onChange={(e) => update("price", e.target.value)}
+            className="input"
+            placeholder="3000000"
+          />
+        </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="קו רוחב (lat)">
-            <input
-              required
-              type="number"
-              step="any"
-              value={form.lat}
-              onChange={(e) => update("lat", e.target.value)}
-              className="input"
-              placeholder="32.0653"
-            />
-          </Field>
-          <Field label="קו אורך (lng)">
-            <input
-              required
-              type="number"
-              step="any"
-              value={form.lng}
-              onChange={(e) => update("lng", e.target.value)}
-              className="input"
-              placeholder="34.7747"
-            />
-          </Field>
-        </div>
+        {hasBuiltSize(t) && (
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t === "commercial" ? 'גודל בנוי (מ"ר)' : 'גודל בנוי (מ"ר)'}>
+              <input
+                type="number"
+                min="1"
+                value={form.size}
+                onChange={(e) => update("size", e.target.value)}
+                className="input"
+              />
+            </Field>
+            {hasRooms(t) && (
+              <Field label="חדרים">
+                <input
+                  type="number"
+                  min="1"
+                  step="0.5"
+                  value={form.rooms}
+                  onChange={(e) => update("rooms", e.target.value)}
+                  className="input"
+                />
+              </Field>
+            )}
+          </div>
+        )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="מחיר (₪)">
+        {hasPlotSize(t) && (
+          <Field label='גודל מגרש (מ"ר)'>
             <input
-              required
               type="number"
               min="1"
-              value={form.price}
-              onChange={(e) => update("price", e.target.value)}
+              value={form.plotSize}
+              onChange={(e) => update("plotSize", e.target.value)}
               className="input"
-              placeholder="3000000"
             />
           </Field>
-          <Field label='גודל (מ"ר)'>
+        )}
+
+        {hasGardenSize(t) && (
+          <Field label='גודל גינה (מ"ר)'>
             <input
-              required
               type="number"
               min="1"
-              value={form.size}
-              onChange={(e) => update("size", e.target.value)}
+              value={form.gardenSize}
+              onChange={(e) => update("gardenSize", e.target.value)}
               className="input"
             />
           </Field>
-        </div>
+        )}
 
-        <div className="grid grid-cols-4 gap-3">
-          <Field label="חדרים">
+        {hasRoofTerrace(t) && (
+          <Field label='גודל מרפסת גג (מ"ר)'>
             <input
-              required
               type="number"
               min="1"
-              step="0.5"
-              value={form.rooms}
-              onChange={(e) => update("rooms", e.target.value)}
+              value={form.roofTerraceSize}
+              onChange={(e) => update("roofTerraceSize", e.target.value)}
               className="input"
             />
           </Field>
-          <Field label="חדרי שירותים">
-            <input
-              type="number"
-              min="0"
-              value={form.bathrooms}
-              onChange={(e) => update("bathrooms", e.target.value)}
-              className="input"
-            />
-          </Field>
-          <Field label="קומה">
-            <input
-              type="number"
-              value={form.floor}
-              onChange={(e) => update("floor", e.target.value)}
-              className="input"
-            />
-          </Field>
-          <Field label="קומות סהכ">
-            <input
-              type="number"
-              value={form.totalFloors}
-              onChange={(e) => update("totalFloors", e.target.value)}
-              className="input"
-            />
-          </Field>
-        </div>
+        )}
 
-        <fieldset className="flex gap-4 flex-wrap">
-          <legend className="text-sm text-(--color-moss) mb-1">תוספות</legend>
-          <Check label="חניה" value={form.parking} onChange={(v) => update("parking", v)} />
-          <Check label="ממ״ד" value={form.mamad} onChange={(v) => update("mamad", v)} />
-          <Check label="מרפסת" value={form.mirpeset} onChange={(v) => update("mirpeset", v)} />
-        </fieldset>
+        {(hasBathrooms(t) || hasFloors(t)) && (
+          <div className="grid grid-cols-3 gap-3">
+            {hasBathrooms(t) && (
+              <Field label="חדרי שירותים">
+                <input
+                  type="number"
+                  min="0"
+                  value={form.bathrooms}
+                  onChange={(e) => update("bathrooms", e.target.value)}
+                  className="input"
+                />
+              </Field>
+            )}
+            {hasFloors(t) && (
+              <>
+                <Field label="קומה">
+                  <input
+                    type="number"
+                    value={form.floor}
+                    onChange={(e) => update("floor", e.target.value)}
+                    className="input"
+                  />
+                </Field>
+                <Field label='סה"כ קומות'>
+                  <input
+                    type="number"
+                    value={form.totalFloors}
+                    onChange={(e) => update("totalFloors", e.target.value)}
+                    className="input"
+                  />
+                </Field>
+              </>
+            )}
+          </div>
+        )}
+
+        {t !== "land" && (
+          <fieldset className="flex gap-x-4 gap-y-2 flex-wrap">
+            <legend className="text-sm text-(--color-moss) mb-1 w-full">תכונות</legend>
+            <Check label="חניה" value={form.parking} onChange={(v) => update("parking", v)} />
+            {hasMamad(t) && (
+              <Check label="ממ״ד" value={form.mamad} onChange={(v) => update("mamad", v)} />
+            )}
+            {hasMirpeset(t) && (
+              <Check label="מרפסת" value={form.mirpeset} onChange={(v) => update("mirpeset", v)} />
+            )}
+            {hasElevator(t) && (
+              <Check label="מעלית" value={form.elevator} onChange={(v) => update("elevator", v)} />
+            )}
+            <Check label="מיזוג" value={form.ac} onChange={(v) => update("ac", v)} />
+            <Check label="משופץ" value={form.renovated} onChange={(v) => update("renovated", v)} />
+            {hasGardenPool(t) && (
+              <>
+                <Check label="גינה" value={form.garden} onChange={(v) => update("garden", v)} />
+                <Check label="בריכה" value={form.pool} onChange={(v) => update("pool", v)} />
+              </>
+            )}
+          </fieldset>
+        )}
 
         <div className="grid grid-cols-3 gap-3">
           <Field label="תאריך">
@@ -398,7 +535,7 @@ export default function CreateEventClient() {
 
         <Field label="נראות">
           <div className="flex gap-2">
-            {(["public", "mixed", "colleagues"] as Visibility[]).map((v) => (
+            {(["public", "mixed", "colleagues"] as EventVisibility[]).map((v) => (
               <button
                 key={v}
                 type="button"
@@ -429,29 +566,31 @@ export default function CreateEventClient() {
           />
         </Field>
 
-        <Field label={`תמונות (${photos.length}/10)`}>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={(e) => handlePhotos(e.target.files)}
-            disabled={uploading || photos.length >= 10}
-            className="block w-full text-sm text-(--color-moss)"
-          />
-          {photos.length > 0 && (
-            <div className="grid grid-cols-5 gap-2 mt-2">
-              {photos.map((p, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={i}
-                  src={p.thumb}
-                  alt=""
-                  className="w-full h-20 object-cover rounded-lg"
-                />
-              ))}
-            </div>
-          )}
-        </Field>
+        {t !== "land" && (
+          <Field label={`תמונות (${photos.length}/10)`}>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => handlePhotos(e.target.files)}
+              disabled={uploading || photos.length >= 10}
+              className="block w-full text-sm text-(--color-moss)"
+            />
+            {photos.length > 0 && (
+              <div className="grid grid-cols-5 gap-2 mt-2">
+                {photos.map((p, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={p.thumb}
+                    alt=""
+                    className="w-full h-20 object-cover rounded-lg"
+                  />
+                ))}
+              </div>
+            )}
+          </Field>
+        )}
 
         <div className="border-t border-(--color-cream) pt-4 space-y-2">
           <div className="flex justify-between items-center">
@@ -459,7 +598,7 @@ export default function CreateEventClient() {
             <button
               type="button"
               onClick={generateAiDescription}
-              disabled={generatingDesc || !form.address || !form.price}
+              disabled={generatingDesc || !form.address.address || !form.price}
               className="bg-(--color-gold)/30 text-(--color-deep) px-3 py-1.5 rounded-lg text-sm hover:bg-(--color-gold)/50 disabled:opacity-50"
             >
               {generatingDesc ? "מייצר..." : "✨ צור עם AI"}

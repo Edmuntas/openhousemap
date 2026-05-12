@@ -67,7 +67,8 @@ export default function EventList({
                 {ev.address}
               </div>
               <div className="text-xs text-(--color-moss)">
-                {ev.date} · {ev.startTime}–{ev.endTime} · {ev.rooms} חד׳
+                {ev.date} · {ev.startTime}–{ev.endTime}
+                {ev.rooms != null && ` · ${ev.rooms} חד׳`}
               </div>
             </div>
           </button>

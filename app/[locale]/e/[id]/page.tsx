@@ -17,7 +17,9 @@ export async function generateMetadata({
     return { title: "Event not found" };
   }
   const title = `Open House — ${event.address} | ${formatPrice(event.price)}`;
-  const description = `${event.date} ${event.startTime}–${event.endTime} | ${event.rooms} rooms · ${event.size}m²`;
+  const sizePart = event.size != null ? ` · ${event.size}m²` : "";
+  const roomsPart = event.rooms != null ? ` | ${event.rooms} rooms` : "";
+  const description = `${event.date} ${event.startTime}–${event.endTime}${roomsPart}${sizePart}`;
   const image = event.photos[0]?.full ?? "";
   return {
     title,
@@ -82,13 +84,21 @@ export default async function EventDetailPage({
       </header>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-        <Stat label="חדרים" value={String(event.rooms)} />
-        <Stat label="מ״ר" value={String(event.size)} />
+        {event.rooms != null && <Stat label="חדרים" value={String(event.rooms)} />}
+        {event.size != null && <Stat label="מ״ר בנוי" value={String(event.size)} />}
+        {event.plotSize != null && <Stat label="מ״ר מגרש" value={String(event.plotSize)} />}
+        {event.gardenSize != null && <Stat label="מ״ר גינה" value={String(event.gardenSize)} />}
+        {event.roofTerraceSize != null && (
+          <Stat label="מ״ר גג" value={String(event.roofTerraceSize)} />
+        )}
         {event.floor != null && (
           <Stat
             label="קומה"
             value={`${event.floor}/${event.totalFloors ?? "?"}`}
           />
+        )}
+        {event.bathrooms != null && (
+          <Stat label="שירותים" value={String(event.bathrooms)} />
         )}
         <Stat label="חניה" value={event.parking ? "כן" : "—"} />
       </section>

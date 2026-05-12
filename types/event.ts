@@ -5,15 +5,32 @@ export type EventStatus = "active" | "cancelled" | "completed";
 export type EventArchiveStatus = "active" | "archived";
 export type PropertyType =
   | "apartment"
-  | "house"
+  | "garden_apartment"
   | "penthouse"
+  | "duplex"
+  | "house"
   | "land"
   | "commercial";
 
+export const RESIDENTIAL_TYPES: PropertyType[] = [
+  "apartment",
+  "garden_apartment",
+  "penthouse",
+  "duplex",
+  "house",
+];
+
+export const APARTMENT_LIKE_TYPES: PropertyType[] = [
+  "apartment",
+  "garden_apartment",
+  "penthouse",
+  "duplex",
+];
+
 export interface PhotoSet {
-  thumb: string; // 400x300
-  medium: string; // 800x600
-  full: string; // 1600x1200
+  thumb: string;
+  medium: string;
+  full: string;
 }
 
 export interface RealtorSnapshot {
@@ -32,21 +49,32 @@ export interface OpenHouseEvent {
   geohash: string;
 
   propertyType: PropertyType;
-  price: number; // ILS, must be > 0
-  rooms: number;
-  bathrooms: number;
-  size: number; // m²
+  price: number;
+
+  rooms?: number;
+  bathrooms?: number;
+  size?: number;
   floor?: number;
   totalFloors?: number;
+
+  plotSize?: number;
+  gardenSize?: number;
+  roofTerraceSize?: number;
+
   parking: boolean;
-  mamad: boolean; // mamad / safe room
-  mirpeset: boolean; // balcony
+  mamad: boolean;
+  mirpeset: boolean;
+  elevator: boolean;
+  ac: boolean;
+  renovated: boolean;
+  garden: boolean;
+  pool: boolean;
 
-  photos: PhotoSet[]; // max 10
+  photos: PhotoSet[];
 
-  date: string; // YYYY-MM-DD
-  startTime: string; // HH:MM
-  endTime: string; // HH:MM
+  date: string;
+  startTime: string;
+  endTime: string;
 
   visibility: EventVisibility;
   description: { he: string; en: string; ru: string };

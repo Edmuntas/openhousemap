@@ -82,11 +82,17 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
 
         <p className="text-(--color-deep) font-medium leading-tight">{event.address}</p>
         <p className="text-sm text-(--color-moss)">
-          {event.rooms} חד׳ · {event.size}m²
-          {event.floor != null && ` · קומה ${event.floor}/${event.totalFloors ?? "?"}`}
-          {event.mamad && " · ממ״ד"}
-          {event.mirpeset && " · מרפסת"}
-          {event.parking && " · חניה"}
+          {[
+            event.rooms != null && `${event.rooms} חד׳`,
+            event.size != null && `${event.size}m²`,
+            event.plotSize != null && `מגרש ${event.plotSize}m²`,
+            event.floor != null && `קומה ${event.floor}/${event.totalFloors ?? "?"}`,
+            event.mamad && "ממ״ד",
+            event.mirpeset && "מרפסת",
+            event.parking && "חניה",
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </p>
 
         <p className="text-(--color-deep) text-sm">

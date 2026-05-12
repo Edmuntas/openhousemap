@@ -5,7 +5,7 @@ interface IcsEvent {
   startTime: string; // HH:MM
   endTime: string; // HH:MM
   price: number;
-  rooms: number;
+  rooms?: number;
 }
 
 /** Build an ICS (RFC 5545) calendar file for a single open house event. */
@@ -22,7 +22,7 @@ export function buildIcs(e: IcsEvent): string {
     `DTSTART:${start}`,
     `DTEND:${end}`,
     `LOCATION:${e.address}`,
-    `DESCRIPTION:₪${e.price.toLocaleString("en-US")} | ${e.rooms} rooms | https://openhousemap.online/e/${e.id}`,
+    `DESCRIPTION:₪${e.price.toLocaleString("en-US")}${e.rooms ? ` | ${e.rooms} rooms` : ""} | https://openhousemap.online/e/${e.id}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");

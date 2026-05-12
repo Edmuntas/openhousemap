@@ -209,7 +209,7 @@ function buildIcon(
     });
   }
   return L.divIcon({
-    html: `<div class="ohm-pill" style="border-color:${color}">${formatPrice(ev.price)} · ${ev.rooms} חד׳</div>`,
+    html: `<div class="ohm-pill" style="border-color:${color}">${formatPrice(ev.price)}${ev.rooms != null ? ` · ${ev.rooms} חד׳` : ""}</div>`,
     className: "",
     iconSize: [120, 32],
     iconAnchor: [60, 32],
