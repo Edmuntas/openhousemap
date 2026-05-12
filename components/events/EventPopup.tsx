@@ -129,6 +129,12 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
             📤 WhatsApp
           </a>
         </div>
+        <a
+          href={`/e/${event.id}`}
+          className="block bg-(--color-deep) text-(--color-ivory) py-2.5 px-4 rounded-xl text-sm font-medium text-center hover:bg-(--color-forest) transition-colors"
+        >
+          פרטים מלאים ←
+        </a>
       </div>
 
       <style jsx>{`

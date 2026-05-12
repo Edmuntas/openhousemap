@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import type { EventWithId } from "@/hooks/useEvents";
 
@@ -42,11 +43,12 @@ export default function EventList({
   return (
     <ul className="divide-y divide-(--color-cream)">
       {events.map((ev) => (
-        <li key={ev.id}>
+        <li key={ev.id} className="flex">
           <button
             type="button"
             onClick={() => onSelect?.(ev)}
-            className={`w-full text-right px-4 py-3 hover:bg-(--color-cream)/60 transition-colors flex items-center gap-3 ${
+            aria-label={`הצג ${ev.address} על המפה`}
+            className={`flex-1 text-right px-4 py-3 hover:bg-(--color-cream)/60 transition-colors flex items-center gap-3 ${
               selectedId === ev.id ? "bg-(--color-cream)" : ""
             }`}
           >
@@ -72,6 +74,13 @@ export default function EventList({
               </div>
             </div>
           </button>
+          <Link
+            href={`/e/${ev.id}`}
+            aria-label="פרטים מלאים"
+            className="px-3 flex items-center text-(--color-moss) hover:text-(--color-forest) hover:bg-(--color-cream)/60 transition-colors text-lg"
+          >
+            ←
+          </Link>
         </li>
       ))}
     </ul>
