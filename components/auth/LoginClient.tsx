@@ -1,21 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   GoogleAuthProvider,
+  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
 } from "firebase/auth";
+import { useEffect } from "react";
 import { auth } from "@/lib/firebase";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Complete redirect flow on mount
+  // If user returned from a redirect-based sign-in, complete it
   useEffect(() => {
     (async () => {
       try {
@@ -24,26 +26,42 @@ export default function LoginClient() {
           await result.user.getIdToken(true);
           const next = searchParams.get("next") ?? "/dashboard";
           router.replace(next);
-          return;
         }
       } catch (e) {
-        console.error("[login] redirect result error", e);
-        setError((e as Error).message);
+        console.error("[login] redirect result", e);
       }
-      setLoading(false);
     })();
   }, [router, searchParams]);
 
   async function handleGoogle() {
     setLoading(true);
     setError(null);
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
-      // redirect happens; the page reloads, useEffect above picks up the result
+      // Try popup first (fast, no full reload)
+      const result = await signInWithPopup(auth, provider);
+      await result.user.getIdToken(true);
+      const next = searchParams.get("next") ?? "/dashboard";
+      router.push(next);
     } catch (e) {
-      console.error("[login] redirect start error", e);
-      setError((e as Error).message);
+      const code = (e as { code?: string }).code;
+      // Fall back to redirect on popup-blocked / popup-closed-by-user
+      if (
+        code === "auth/popup-blocked" ||
+        code === "auth/popup-closed-by-user" ||
+        code === "auth/cancelled-popup-request"
+      ) {
+        try {
+          await signInWithRedirect(auth, provider);
+          return; // page reloads
+        } catch (e2) {
+          console.error("[login] redirect fallback", e2);
+          setError((e2 as Error).message);
+        }
+      } else {
+        console.error("[login] popup error", e);
+        setError((e as Error).message);
+      }
       setLoading(false);
     }
   }
