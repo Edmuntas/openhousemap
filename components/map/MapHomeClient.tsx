@@ -6,7 +6,7 @@ import MapContainer from "./MapContainer";
 import EventList from "@/components/events/EventList";
 import EventFilters, { type FilterState } from "@/components/events/EventFilters";
 import EventPopup from "@/components/events/EventPopup";
-import MobileSheet from "@/components/ui/MobileSheet";
+import MobileSheet, { type Snap } from "@/components/ui/MobileSheet";
 import { useEvents, type EventWithId } from "@/hooks/useEvents";
 
 export default function MapHomeClient() {
@@ -18,6 +18,7 @@ export default function MapHomeClient() {
   });
   const [selected, setSelected] = useState<EventWithId | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [sheetSnap, setSheetSnap] = useState<Snap>("collapsed");
   const { events, loading } = useEvents();
 
   useEffect(() => {
@@ -61,11 +62,23 @@ export default function MapHomeClient() {
     </>
   );
 
+  // Tap on map area while sheet is expanded → collapse it. Map clicks that
+  // hit a Leaflet marker stop here too, but pin clicks call setSelected
+  // (which hides the sheet anyway), so collapse is harmless.
+  function handleMapTap() {
+    if (sheetSnap !== "collapsed") setSheetSnap("collapsed");
+  }
+
   // ----- Mobile: fullscreen map + bottom sheet -----
   if (isMobile) {
     return (
       <main className="fixed inset-0 overflow-hidden">
-        <MapContainer onEventSelect={setSelected} selectedEvent={selected} />
+        <div className="absolute inset-0" onClickCapture={handleMapTap}>
+          <MapContainer
+            onEventSelect={setSelected}
+            selectedEvent={selected}
+          />
+        </div>
 
         {/* Floating brand chip at top, respects Dynamic Island */}
         <div
@@ -80,8 +93,10 @@ export default function MapHomeClient() {
         </div>
 
         <MobileSheet
-          countLabel={`${filtered.length} בתים פתוחים · משוך למעלה`}
+          countLabel={`${filtered.length} בתים פתוחים`}
           hidden={!!selected}
+          snap={sheetSnap}
+          onSnapChange={setSheetSnap}
         >
           {sidebarContent}
         </MobileSheet>
