@@ -28,6 +28,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#4A6E30",
+  viewportFit: "cover", // iPhone Dynamic Island / notch — let content use safe-area-inset-*
 };
 
 export default function RootLayout({

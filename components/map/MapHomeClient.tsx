@@ -40,10 +40,10 @@ export default function MapHomeClient() {
   }, [events, filters]);
 
   return (
-    <main className="flex flex-col md:flex-row h-screen overflow-hidden">
+    <main className="flex flex-col md:flex-row h-svh-safe overflow-hidden pl-safe pr-safe">
       {/* Sidebar (desktop) / top sheet (mobile) */}
       <aside className="md:w-[380px] md:flex-shrink-0 bg-(--surface) md:border-l border-(--color-cream) flex flex-col overflow-hidden md:order-2">
-        <header className="px-4 py-3 border-b border-(--color-cream)">
+        <header className="px-4 pt-safe pb-3 border-b border-(--color-cream)">
           <h1 className="text-2xl font-[var(--font-display)] text-(--color-deep)">
             {t("name")}
           </h1>
@@ -62,7 +62,7 @@ export default function MapHomeClient() {
 
       {/* Map */}
       <section className="flex-1 relative md:order-1 min-h-[50vh] md:min-h-0">
-        <MapContainer onEventSelect={setSelected} />
+        <MapContainer onEventSelect={setSelected} selectedEvent={selected} />
         <EventPopup event={selected} onClose={() => setSelected(null)} />
       </section>
     </main>

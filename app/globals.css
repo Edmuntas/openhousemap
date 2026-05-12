@@ -72,6 +72,25 @@ body {
   font-family: var(--font-body, 'DM Sans', sans-serif);
 }
 
+/* iOS safe-area utilities — Dynamic Island, notch, home bar.
+   Apply via `pt-safe`, `pb-safe`, etc. on top-level chrome.
+   100dvh respects mobile dynamic viewport (URL bar collapse). */
+.h-svh-safe {
+  min-height: 100dvh;
+}
+.pt-safe {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.pl-safe {
+  padding-left: max(0px, env(safe-area-inset-left));
+}
+.pr-safe {
+  padding-right: max(0px, env(safe-area-inset-right));
+}
+
 /* Luxury easing for animations */
 * {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);

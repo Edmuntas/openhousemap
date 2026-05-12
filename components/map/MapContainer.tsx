@@ -16,8 +16,14 @@ const MapInner = dynamic(() => import("./MapInner"), {
 
 interface MapContainerProps {
   onEventSelect?: (event: EventWithId) => void;
+  selectedEvent?: EventWithId | null;
 }
 
-export default function MapContainer({ onEventSelect }: MapContainerProps) {
-  return <MapInner onEventSelect={onEventSelect} />;
+export default function MapContainer({
+  onEventSelect,
+  selectedEvent,
+}: MapContainerProps) {
+  return (
+    <MapInner onEventSelect={onEventSelect} selectedEvent={selectedEvent} />
+  );
 }

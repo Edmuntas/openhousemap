@@ -33,7 +33,7 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
   const shareText = `Open House: ${event.address} | ${event.date} ${event.startTime}–${event.endTime} | ${formatPrice(event.price)}`;
 
   const containerClass = isMobile
-    ? "fixed inset-x-0 bottom-0 z-[2000] bg-(--surface) rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up"
+    ? "fixed inset-x-0 bottom-0 z-[2000] bg-(--surface) rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up pb-safe"
     : "fixed top-1/2 right-6 -translate-y-1/2 z-[2000] w-[420px] max-h-[80vh] overflow-y-auto bg-(--surface) rounded-2xl shadow-2xl";
 
   return (

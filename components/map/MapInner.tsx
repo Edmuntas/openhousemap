@@ -18,6 +18,7 @@ const VISIBILITY_COLOR: Record<string, string> = {
 
 interface MapInnerProps {
   onEventSelect?: (event: EventWithId) => void;
+  selectedEvent?: EventWithId | null;
 }
 
 interface ClusterLayer extends L.Layer {
@@ -31,7 +32,7 @@ interface MapState {
   cluster: ClusterLayer;
 }
 
-export default function MapInner({ onEventSelect }: MapInnerProps) {
+export default function MapInner({ onEventSelect, selectedEvent }: MapInnerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapState, setMapState] = useState<MapState | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
@@ -66,12 +67,24 @@ export default function MapInner({ onEventSelect }: MapInnerProps) {
         zoomControl: true,
       });
 
+      // Real-estate style map: CartoDB Positron — pale, minimal, lets the
+      // colored pins stand out. Same style Airbnb/Zillow/Redfin-class apps use.
       const tileUrl = process.env.NEXT_PUBLIC_MAPTILER_KEY
-        ? `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`
-        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+        ? `https://api.maptiler.com/maps/basic-v2-light/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`
+        : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png";
+      const labelUrl =
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png";
       L.tileLayer(tileUrl, {
-        attribution: "© OpenStreetMap contributors",
+        attribution: "© OpenStreetMap, © CARTO",
         maxZoom: 19,
+        subdomains: "abcd",
+      }).addTo(map);
+      // Hebrew labels on top of pale base (Carto Voyager has multilingual labels)
+      L.tileLayer(labelUrl, {
+        attribution: "",
+        maxZoom: 19,
+        subdomains: "abcd",
+        pane: "shadowPane",
       }).addTo(map);
 
       const cluster = (
@@ -116,6 +129,13 @@ export default function MapInner({ onEventSelect }: MapInnerProps) {
       cluster.addLayer(marker);
     }
   }, [mapState, events, zoom, onEventSelect]);
+
+  // Fly to selected event (sidebar click)
+  useEffect(() => {
+    if (!mapState || !selectedEvent) return;
+    const { lat, lng } = selectedEvent.coordinates;
+    mapState.map.flyTo([lat, lng], 16, { duration: 0.7 });
+  }, [mapState, selectedEvent]);
 
   return (
     <>
