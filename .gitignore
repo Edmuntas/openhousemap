@@ -64,3 +64,4 @@ functions/node_modules/
 
 # OS
 Thumbs.db
+.playwright-mcp/
