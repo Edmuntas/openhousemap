@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
 import type { EventWithId } from "@/hooks/useEvents";
@@ -12,6 +12,8 @@ interface EventPopupProps {
 
 export default function EventPopup({ event, onClose }: EventPopupProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const startYRef = useRef<number | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -20,6 +22,23 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  function onHandleTouchStart(e: React.TouchEvent) {
+    startYRef.current = e.touches[0].clientY;
+    setDragOffset(0);
+  }
+  function onHandleTouchMove(e: React.TouchEvent) {
+    if (startYRef.current == null) return;
+    const dy = e.touches[0].clientY - startYRef.current;
+    if (dy > 0) setDragOffset(dy);
+  }
+  function onHandleTouchEnd() {
+    if (dragOffset > 80) {
+      onClose();
+    }
+    startYRef.current = null;
+    setDragOffset(0);
+  }
 
   if (!event) return null;
 
@@ -37,20 +56,38 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
     : "fixed top-1/2 right-6 -translate-y-1/2 z-[2000] w-[420px] max-h-[80vh] overflow-y-auto bg-(--surface) rounded-2xl shadow-2xl";
 
   return (
-    <div className={containerClass} role="dialog" aria-modal="true">
+    <div
+      className={containerClass}
+      role="dialog"
+      aria-modal="true"
+      style={
+        isMobile && dragOffset > 0
+          ? { transform: `translateY(${dragOffset}px)`, transition: "none" }
+          : undefined
+      }
+    >
+      {isMobile && (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="גרור למטה לסגירה"
+          onTouchStart={onHandleTouchStart}
+          onTouchMove={onHandleTouchMove}
+          onTouchEnd={onHandleTouchEnd}
+          onClick={onClose}
+          className="w-full flex justify-center pt-2.5 pb-2 cursor-grab active:cursor-grabbing touch-pan-y"
+        >
+          <span className="w-12 h-1.5 rounded-full bg-(--color-moss)/40" />
+        </div>
+      )}
       <button
         type="button"
         onClick={onClose}
         aria-label="סגור"
-        className="absolute top-3 right-3 rtl:right-auto rtl:left-3 w-9 h-9 rounded-full bg-(--color-cream) hover:bg-(--color-sage) text-(--color-deep) flex items-center justify-center transition-colors"
+        className="absolute top-3 right-3 rtl:right-auto rtl:left-3 w-9 h-9 rounded-full bg-(--color-cream) hover:bg-(--color-sage) text-(--color-deep) flex items-center justify-center transition-colors z-10"
       >
         ✕
       </button>
-      {isMobile && (
-        <div className="flex justify-center pt-2 pb-1">
-          <span className="w-12 h-1.5 rounded-full bg-(--color-cream)" />
-        </div>
-      )}
 
       <div className="aspect-video bg-(--color-cream) flex items-center justify-center text-(--color-moss) text-sm">
         {event.photos.length > 0 ? (

@@ -5,24 +5,24 @@
    ============================================ */
 
 :root {
-  /* Light Mode — C3 Sage Premium */
-  --color-deep: #141C0A;
-  --color-forest: #2E4E1A;
-  --color-moss: #4A6E30;
-  --color-sage: #8AB060;
-  --color-gold: #EAA830;
-  --color-cream: #F0E8D0;
-  --color-ivory: #F6F8F2;
+  /* Light Mode — C3 Sage Premium (saturation bumped after MVP user feedback) */
+  --color-deep: #0E1605;     /* slightly deeper near-black */
+  --color-forest: #2A4D14;   /* richer forest */
+  --color-moss: #3D6B1F;     /* deeper moss — more legible on cream */
+  --color-sage: #7CA84A;     /* more saturated sage (was washed) */
+  --color-gold: #E59819;     /* warmer mustard */
+  --color-cream: #E8DCAB;    /* warmer wheat (was bleached beige) */
+  --color-ivory: #FBF6E3;    /* slightly warm off-white background */
 
   /* Dark Mode — Forest Night */
   --color-void: #0C1208;
   --color-deep-d: #182410;
   --color-sage-d: #8AB060;
 
-  /* Visibility colors (both themes) */
-  --vis-green: #4A9B5C;
-  --vis-red: #C04848;
-  --vis-yellow: #D4980C;
+  /* Visibility colors */
+  --vis-green: #3F8F4D;      /* deeper, more readable */
+  --vis-red: #B73B3B;
+  --vis-yellow: #C9870D;
 
   /* Active theme bindings (light defaults) */
   --background: var(--color-ivory);
