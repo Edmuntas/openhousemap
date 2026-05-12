@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
+import PhotoGallery from "@/components/ui/PhotoGallery";
 import type { EventWithId } from "@/hooks/useEvents";
 
 interface EventPopupProps {
@@ -89,17 +90,7 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
         ✕
       </button>
 
-      <div className="aspect-video bg-(--color-cream) flex items-center justify-center text-(--color-moss) text-sm">
-        {event.photos.length > 0 ? (
-          <img
-            src={event.photos[0].medium}
-            alt={event.address}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <span>אין תמונה</span>
-        )}
-      </div>
+      <PhotoGallery photos={event.photos} alt={event.address} aspect="video" />
 
       <div className="p-5 space-y-3">
         <div className="flex items-baseline justify-between gap-2">

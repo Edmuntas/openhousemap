@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getEventById } from "@/lib/event-server";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import EventActionsClient from "@/components/events/EventActionsClient";
+import PhotoGallery from "@/components/ui/PhotoGallery";
 
 export const revalidate = 60;
 
@@ -103,23 +104,7 @@ export default async function EventDetailPage({
         <Stat label="חניה" value={event.parking ? "כן" : "—"} />
       </section>
 
-      {event.photos.length > 0 ? (
-        <section className="grid grid-cols-2 gap-2">
-          {event.photos.slice(0, 6).map((photo, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={photo.full}
-              alt={`${event.address} - תמונה ${i + 1}`}
-              className="rounded-xl w-full aspect-video object-cover"
-            />
-          ))}
-        </section>
-      ) : (
-        <div className="aspect-video bg-(--color-cream) rounded-xl flex items-center justify-center text-(--color-moss)">
-          אין תמונות זמינות
-        </div>
-      )}
+      <PhotoGallery photos={event.photos} alt={event.address} aspect="video" />
 
       {event.description.he && (
         <section className="bg-(--color-cream) rounded-xl p-5">
