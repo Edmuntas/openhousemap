@@ -1,28 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Complete redirect flow on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          await result.user.getIdToken(true);
+          const next = searchParams.get("next") ?? "/dashboard";
+          router.replace(next);
+          return;
+        }
+      } catch (e) {
+        console.error("[login] redirect result error", e);
+        setError((e as Error).message);
+      }
+      setLoading(false);
+    })();
+  }, [router, searchParams]);
 
   async function handleGoogle() {
     setLoading(true);
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      // Force-refresh token to pick up custom claims set server-side
-      await result.user.getIdToken(true);
-      const next = searchParams.get("next") ?? "/dashboard";
-      router.push(next);
+      await signInWithRedirect(auth, provider);
+      // redirect happens; the page reloads, useEffect above picks up the result
     } catch (e) {
-      console.error(e);
+      console.error("[login] redirect start error", e);
       setError((e as Error).message);
       setLoading(false);
     }
