@@ -9,6 +9,7 @@ import { useMyEvents } from "@/hooks/useMyEvents";
 import { auth } from "@/lib/firebase";
 import { formatPrice, todayIso } from "@/lib/utils";
 import type { EventWithId } from "@/hooks/useEvents";
+import DashboardEventCard from "./DashboardEventCard";
 
 type Tab = "today" | "upcoming" | "archive";
 
@@ -125,26 +126,7 @@ export default function DashboardClient() {
         ) : (
           <ul className="space-y-2">
             {list.map((ev) => (
-              <li key={ev.id}>
-                <Link
-                  href={`/e/${ev.id}`}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-(--color-cream)/60 hover:bg-(--color-cream) transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="font-[var(--font-display)] text-(--color-deep) font-semibold">
-                      {formatPrice(ev.price)}
-                    </div>
-                    <div className="text-sm text-(--color-deep)">
-                      {ev.address}
-                    </div>
-                    <div className="text-xs text-(--color-moss)">
-                      {ev.date} · {ev.startTime}–{ev.endTime}
-                      {ev.rooms != null && ` · ${ev.rooms} חד׳`}
-                    </div>
-                  </div>
-                  <span className="text-(--color-moss)">←</span>
-                </Link>
-              </li>
+              <DashboardEventCard key={ev.id} event={ev} />
             ))}
           </ul>
         )}

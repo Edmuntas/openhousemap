@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
 import PhotoGallery from "@/components/ui/PhotoGallery";
+import RsvpButtons from "@/components/events/RsvpButtons";
 import type { EventWithId } from "@/hooks/useEvents";
 
 interface EventPopupProps {
@@ -138,6 +139,8 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
           {event.realtorSnapshot.officeName} · רישיון{" "}
           {event.realtorSnapshot.licenseNumber}
         </div>
+
+        <RsvpButtons eventId={event.id} />
 
         <div className="grid grid-cols-2 gap-2 pt-2">
           <a

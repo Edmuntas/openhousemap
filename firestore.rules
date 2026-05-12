@@ -44,13 +44,13 @@ service cloud.firestore {
 
     // RSVP — own records (or event owner can read RSVPs for own events)
     match /rsvp/{id} {
-      allow read: if isVerifiedRealtor()
+      allow read: if (isVerifiedRealtor() || isAdmin())
         && (resource.data.realtorId == request.auth.uid
         || get(/databases/$(database)/documents/events/$(resource.data.eventId))
            .data.ownerId == request.auth.uid);
-      allow create: if isVerifiedRealtor()
+      allow create: if (isVerifiedRealtor() || isAdmin())
         && request.resource.data.realtorId == request.auth.uid;
-      allow update, delete: if isVerifiedRealtor()
+      allow update, delete: if (isVerifiedRealtor() || isAdmin())
         && resource.data.realtorId == request.auth.uid;
     }
 
