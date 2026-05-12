@@ -22,6 +22,14 @@ interface UnifiedFeature {
 // Always returns Mapbox-style { features: [...] }.
 const ISRAEL_BBOX = "34.27,29.5,35.9,33.3";
 const CITY_OSM_VALUES = new Set(["city", "town", "village", "suburb"]);
+const CITY_NOMINATIM_TYPES = new Set([
+  "city",
+  "town",
+  "village",
+  "hamlet",
+  "suburb",
+  "administrative",
+]);
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
@@ -146,13 +154,17 @@ async function photonGeocode(
       if (!placeName) continue;
 
       const isAddress = !!(street || num);
+      const isHebrew = /[֐-׿]/.test(placeName);
       all.push({
         id: `photon.${p.osm_id}.${lang}`,
         place_name: placeName,
         text: p.name ?? street ?? cityName,
         center: f.geometry.coordinates,
         context: cityName ? [{ id: "place.city", text: cityName }] : [],
-        _score: (isAddress ? 80 : type === "city" ? 90 : 60) + (lang === "he" ? 5 : 0),
+        _score:
+          (isAddress ? 80 : type === "city" ? 90 : 60) +
+          (lang === "he" ? 5 : 0) +
+          (isHebrew ? 20 : 0),
       });
     }
   }
@@ -186,10 +198,12 @@ async function nominatimGeocode(
   q: string,
   type: "city" | "address" | null
 ): Promise<UnifiedFeature[]> {
-  let url =
+  // Don't pass &featuretype=city — it restricts to OSM admin boundaries with
+  // class=city which excludes most Israeli towns (Zikhron Yaakov, etc.).
+  // Filter on our side instead.
+  const url =
     `https://nominatim.openstreetmap.org/search?` +
-    `q=${encodeURIComponent(q)}&countrycodes=il&format=json&addressdetails=1&limit=8&accept-language=he,en`;
-  if (type === "city") url += "&featuretype=city";
+    `q=${encodeURIComponent(q)}&countrycodes=il&format=json&addressdetails=1&limit=10&accept-language=he,en`;
 
   const resp = await fetch(url, {
     headers: {
@@ -203,21 +217,38 @@ async function nominatimGeocode(
       const a = r.address ?? {};
       const cityName =
         a.city ?? a.town ?? a.village ?? a.municipality ?? r.name ?? "";
-      if (type === "city" && !cityName) return null;
+      const isAddress = !!(a.road || a.house_number);
+
+      if (type === "city") {
+        // Keep only place-class hits; prefer place over boundary duplicates.
+        const cls = r.class ?? "";
+        const ty = r.type ?? "";
+        const isPlaceLike =
+          cls === "place" ||
+          (cls === "boundary" && CITY_NOMINATIM_TYPES.has(ty));
+        if (!isPlaceLike) return null;
+        if (!cityName) return null;
+      }
 
       const context: { id: string; text: string }[] = [];
       if (cityName) context.push({ id: "place.city", text: cityName });
       if (a.country) context.push({ id: "country.il", text: a.country });
-      const isAddress = !!(a.road || a.house_number);
+
+      // Score hebrew display names higher (Nominatim returns hebrew text
+      // when accept-language=he and the OSM feature has a name:he tag).
+      const isHebrew = /[֐-׿]/.test(r.display_name);
+      const heBonus = isHebrew ? 20 : 0;
 
       return {
         id: `nominatim.${r.place_id}`,
-        place_name:
-          type === "city" ? cityName : r.display_name,
+        place_name: type === "city" ? cityName : r.display_name,
         text: r.name ?? a.road ?? cityName,
         center: [Number(r.lon), Number(r.lat)] as [number, number],
         context,
-        _score: type === "city" ? 85 : isAddress ? 75 : 55,
+        _score:
+          (type === "city" ? 85 : isAddress ? 75 : 55) +
+          (r.class === "place" ? 5 : 0) +
+          heBonus,
       };
     })
     .filter((x): x is UnifiedFeature => x !== null);

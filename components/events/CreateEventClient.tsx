@@ -594,10 +594,10 @@ export default function CreateEventClient() {
         {t !== "land" && (
           <Field label={`תמונות (${photos.length}/10)`}>
             <label
-              className={`block border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-colors ${
+              className={`relative block border-2 border-dashed rounded-xl p-5 text-center transition-colors ${
                 uploading || photos.length >= 10
                   ? "border-(--color-cream) bg-(--color-cream)/30 cursor-not-allowed opacity-60"
-                  : "border-(--color-moss)/40 bg-(--color-cream)/30 hover:border-(--color-moss) hover:bg-(--color-cream)/60"
+                  : "border-(--color-moss)/40 bg-(--color-cream)/30 hover:border-(--color-moss) hover:bg-(--color-cream)/60 cursor-pointer"
               }`}
             >
               <input
@@ -609,16 +609,17 @@ export default function CreateEventClient() {
                   e.target.value = "";
                 }}
                 disabled={uploading || photos.length >= 10}
-                className="sr-only"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                style={{ fontSize: 0 }}
               />
-              <div className="text-(--color-deep) font-medium">
+              <div className="text-(--color-deep) font-medium pointer-events-none">
                 {uploading
                   ? "מעלה..."
                   : photos.length >= 10
                   ? "הגעת ל-10 תמונות"
                   : "📸 בחר תמונות או צלם"}
               </div>
-              <div className="text-xs text-(--color-moss) mt-1">
+              <div className="text-xs text-(--color-moss) mt-1 pointer-events-none">
                 {photos.length === 0
                   ? "JPG / PNG · עד 10 תמונות"
                   : `${photos.length}/10 תמונות הועלו · לחץ להוספה`}
