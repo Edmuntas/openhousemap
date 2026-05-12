@@ -11,6 +11,20 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "storage.googleapis.com" },
     ],
   },
+  async rewrites() {
+    // Proxy Firebase Auth handler from our custom domain so authDomain matches
+    // window.origin and signInWithRedirect/popup work without third-party cookies.
+    return [
+      {
+        source: "/__/auth/:path*",
+        destination: "https://openhousemap.firebaseapp.com/__/auth/:path*",
+      },
+      {
+        source: "/__/firebase/:path*",
+        destination: "https://openhousemap.firebaseapp.com/__/firebase/:path*",
+      },
+    ];
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
