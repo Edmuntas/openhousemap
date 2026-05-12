@@ -178,7 +178,10 @@ export default function AddressPicker({ value, onChange }: Props) {
 
   function selectCity(f: MapboxFeature) {
     const [lng, lat] = f.center;
-    const name = f.text || f.place_name;
+    // place_name comes pre-normalized from /api/geocode (hebrew when
+    // accept-language=he hits a name:he tag). Use it directly instead of
+    // f.text which can fall back to the latin OSM `name` field.
+    const name = f.place_name;
     const next: CityState = { name, lat, lng };
     setCity(next);
     setCityQuery(name);
@@ -255,7 +258,7 @@ export default function AddressPicker({ value, onChange }: Props) {
   return (
     <div className="space-y-2">
       {/* CITY input */}
-      <div className="relative">
+      <div className="relative z-[1100]">
         <label className="text-xs text-(--color-moss) mb-1 block">עיר</label>
         <input
           type="text"
@@ -292,7 +295,7 @@ export default function AddressPicker({ value, onChange }: Props) {
       </div>
 
       {/* ADDRESS input */}
-      <div className="relative">
+      <div className="relative z-[1050]">
         <label className="text-xs text-(--color-moss) mb-1 block">
           רחוב ומספר בית
         </label>
