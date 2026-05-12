@@ -190,7 +190,7 @@ export default function MapInner({ onEventSelect, selectedEvent }: MapInnerProps
           border-radius: 999px;
           background: #f6f8f2;
           color: #141c0a;
-          font-family: var(--font-syne), "Syne", sans-serif;
+          font-family: var(--font-rubik), "Rubik", sans-serif;
           font-weight: 600;
           font-size: 12px;
           white-space: nowrap;

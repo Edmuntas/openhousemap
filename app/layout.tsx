@@ -1,16 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Syne, DM_Sans } from "next/font/google";
+import { Rubik } from "next/font/google";
 import "./globals.css";
 
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
-  subsets: ["latin"],
+// Rubik covers hebrew + latin + cyrillic in one family. Earlier Syne/DM_Sans
+// were latin-only so hebrew text was rendering in the OS fallback font and
+// the interface looked inconsistent.
+const rubik = Rubik({
+  variable: "--font-rubik",
+  subsets: ["latin", "hebrew", "cyrillic"],
+  weight: ["300", "400", "500", "600", "700", "900"],
   display: "swap",
 });
 
@@ -40,7 +38,7 @@ export default function RootLayout({
     <html
       lang="he"
       dir="rtl"
-      className={`${syne.variable} ${dmSans.variable} h-full antialiased`}
+      className={`${rubik.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

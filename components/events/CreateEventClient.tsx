@@ -721,7 +721,7 @@ export default function CreateEventClient() {
           color: var(--color-deep);
           border: 1px solid transparent;
           outline-color: var(--color-moss);
-          font-family: var(--font-dm-sans), sans-serif;
+          font-family: var(--font-rubik), sans-serif;
         }
         :global(.input:focus) {
           border-color: var(--color-moss);

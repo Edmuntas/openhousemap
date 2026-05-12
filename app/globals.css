@@ -61,15 +61,16 @@
   --color-vis-red: var(--vis-red);
   --color-vis-yellow: var(--vis-yellow);
 
-  --font-display: var(--font-syne), 'Syne', sans-serif;
-  --font-body: var(--font-dm-sans), 'DM Sans', sans-serif;
-  --font-sans: var(--font-dm-sans), 'DM Sans', sans-serif;
+  /* Rubik covers hebrew + latin + cyrillic; one family for everything. */
+  --font-display: var(--font-rubik), 'Rubik', system-ui, sans-serif;
+  --font-body: var(--font-rubik), 'Rubik', system-ui, sans-serif;
+  --font-sans: var(--font-rubik), 'Rubik', system-ui, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body, 'DM Sans', sans-serif);
+  font-family: var(--font-rubik), 'Rubik', system-ui, sans-serif;
 }
 
 /* iOS safe-area utilities — Dynamic Island, notch, home bar.
