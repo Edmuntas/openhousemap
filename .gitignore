@@ -73,3 +73,7 @@ run*.jpg
 city-dropdown-test.jpg
 address-dropdown-test.jpg
 photo-uploaded-test.jpg
+
+mobile-*.jpg
+*-test*.jpg
+flyto-*.jpg
