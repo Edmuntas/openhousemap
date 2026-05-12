@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isVerifiedRealtor() {
+      return request.auth != null
+        && request.auth.token.role == 'realtor'
+        && request.auth.token.verified == true;
+    }
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Events — public visible to all (only active + mapVisible)
+    match /events/{eventId} {
+      allow read: if resource.data.visibility == 'public'
+        && resource.data.status == 'active'
+        && resource.data.mapVisible == true;
+      allow read: if resource.data.visibility in ['public', 'mixed']
+        && isVerifiedRealtor();
+      allow read: if resource.data.visibility == 'colleagues'
+        && isVerifiedRealtor();
+      allow read: if isOwner(resource.data.ownerId) || isAdmin();
+      allow create: if (isVerifiedRealtor() || isAdmin())
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.price > 0;
+      allow update, delete: if isOwner(resource.data.ownerId) || isAdmin();
+    }
+
+    // Users — own profile only
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      // Prevent self-modification of verified/role/verificationStatus
+      allow update: if isAdmin()
+        || (isOwner(userId)
+          && !request.resource.data.diff(resource.data)
+             .affectedKeys().hasAny(['verified', 'role', 'verificationStatus']));
+      allow delete: if isAdmin();
+    }
+
+    // RSVP — own records (or event owner can read RSVPs for own events)
+    match /rsvp/{id} {
+      allow read: if isVerifiedRealtor()
+        && (resource.data.realtorId == request.auth.uid
+        || get(/databases/$(database)/documents/events/$(resource.data.eventId))
+           .data.ownerId == request.auth.uid);
+      allow create: if isVerifiedRealtor()
+        && request.resource.data.realtorId == request.auth.uid;
+      allow update, delete: if isVerifiedRealtor()
+        && resource.data.realtorId == request.auth.uid;
+    }
+
+    // Feedback — own records, admin sees all
+    match /feedback/{id} {
+      allow read: if isAdmin()
+        || (isVerifiedRealtor() && resource.data.realtorId == request.auth.uid);
+      allow create: if isVerifiedRealtor()
+        && request.resource.data.realtorId == request.auth.uid;
+    }
+
+    // Favourites — own records only
+    match /favourites/{id} {
+      allow read, delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Admin-only collections
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    match /audit_log/{document=**} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

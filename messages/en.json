@@ -1,0 +1,23 @@
+{
+  "app": {
+    "name": "OpenHouse Map",
+    "tagline": "All Open Houses — In One Place"
+  },
+  "nav": {
+    "map": "Map",
+    "dashboard": "Dashboard",
+    "create": "Create Open House",
+    "login": "Log In",
+    "register": "Register",
+    "logout": "Log Out"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit"
+  }
+}

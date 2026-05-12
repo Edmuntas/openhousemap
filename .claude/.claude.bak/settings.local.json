@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(firebase --version)",
+      "Bash(firebase projects:list)",
+      "Bash(mv CLAUDE.md /tmp/CLAUDE.md.bak)",
+      "Bash(mv .claude /tmp/.claude.bak)"
+    ]
+  }
+}

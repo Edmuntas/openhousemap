@@ -1,0 +1,23 @@
+{
+  "app": {
+    "name": "OpenHouse Map",
+    "tagline": "Toutes les portes ouvertes — en un seul endroit"
+  },
+  "nav": {
+    "map": "Carte",
+    "dashboard": "Tableau de bord",
+    "create": "Créer une Open House",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier"
+  }
+}

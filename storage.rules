@@ -1,0 +1,39 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isVerifiedRealtor() {
+      return request.auth != null
+        && request.auth.token.role == 'realtor'
+        && request.auth.token.verified == true;
+    }
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Event photos — verified realtors upload to their event paths
+    // Path: /events/{eventId}/{filename}
+    // Resize extension generates thumb_/medium_/full_ variants — also publicly readable
+    match /events/{eventId}/{fileName} {
+      allow read: if true; // public read for map popups, OG images
+      allow write: if isVerifiedRealtor()
+        && request.resource.size < 10 * 1024 * 1024 // 10MB max
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isVerifiedRealtor() || isAdmin();
+    }
+
+    // User avatars (future)
+    match /users/{userId}/avatar/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

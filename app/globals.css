@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
+/* ============================================
+   OpenHouse Map — C3 Sage Premium Design Tokens
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Mode — C3 Sage Premium */
+  --color-deep: #141C0A;
+  --color-forest: #2E4E1A;
+  --color-moss: #4A6E30;
+  --color-sage: #8AB060;
+  --color-gold: #EAA830;
+  --color-cream: #F0E8D0;
+  --color-ivory: #F6F8F2;
+
+  /* Dark Mode — Forest Night */
+  --color-void: #0C1208;
+  --color-deep-d: #182410;
+  --color-sage-d: #8AB060;
+
+  /* Visibility colors (both themes) */
+  --vis-green: #4A9B5C;
+  --vis-red: #C04848;
+  --vis-yellow: #D4980C;
+
+  /* Active theme bindings (light defaults) */
+  --background: var(--color-ivory);
+  --foreground: var(--color-deep);
+  --surface: #FFFFFF;
+  --accent: var(--color-moss);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--color-void);
+    --foreground: var(--color-cream);
+    --surface: var(--color-deep-d);
+    --accent: var(--color-sage-d);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-deep: var(--color-deep);
+  --color-forest: var(--color-forest);
+  --color-moss: var(--color-moss);
+  --color-sage: var(--color-sage);
+  --color-gold: var(--color-gold);
+  --color-cream: var(--color-cream);
+  --color-ivory: var(--color-ivory);
+
+  --color-void: var(--color-void);
+  --color-deep-d: var(--color-deep-d);
+
+  --color-vis-green: var(--vis-green);
+  --color-vis-red: var(--vis-red);
+  --color-vis-yellow: var(--vis-yellow);
+
+  --font-display: var(--font-syne), 'Syne', sans-serif;
+  --font-body: var(--font-dm-sans), 'DM Sans', sans-serif;
+  --font-sans: var(--font-dm-sans), 'DM Sans', sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+}
+
+/* Luxury easing for animations */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
