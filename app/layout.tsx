@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Syne, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -23,8 +23,11 @@ export const metadata: Metadata = {
   description: "מפת בתים פתוחים ארצית למתווכים בישראל. All Open Houses — In One Place.",
   applicationName: "OpenHouse Map",
   authors: [{ name: "AdmontREM" }],
-  themeColor: "#4A6E30",
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#4A6E30",
 };
 
 export default function RootLayout({
