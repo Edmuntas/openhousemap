@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-} from "firebase/auth";
-import { useEffect } from "react";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 export default function LoginClient() {
@@ -16,50 +10,24 @@ export default function LoginClient() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // If user returned from a redirect-based sign-in, complete it
-  useEffect(() => {
-    (async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          await result.user.getIdToken(true);
-          const next = searchParams.get("next") ?? "/dashboard";
-          router.replace(next);
-        }
-      } catch (e) {
-        console.error("[login] redirect result", e);
-      }
-    })();
-  }, [router, searchParams]);
+  const [popupBlocked, setPopupBlocked] = useState(false);
 
   async function handleGoogle() {
     setLoading(true);
     setError(null);
-    const provider = new GoogleAuthProvider();
+    setPopupBlocked(false);
     try {
-      // Try popup first (fast, no full reload)
+      const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       await result.user.getIdToken(true);
       const next = searchParams.get("next") ?? "/dashboard";
       router.push(next);
     } catch (e) {
       const code = (e as { code?: string }).code;
-      // Fall back to redirect on popup-blocked / popup-closed-by-user
-      if (
-        code === "auth/popup-blocked" ||
-        code === "auth/popup-closed-by-user" ||
-        code === "auth/cancelled-popup-request"
-      ) {
-        try {
-          await signInWithRedirect(auth, provider);
-          return; // page reloads
-        } catch (e2) {
-          console.error("[login] redirect fallback", e2);
-          setError((e2 as Error).message);
-        }
+      if (code === "auth/popup-blocked" || code === "auth/popup-closed-by-user") {
+        setPopupBlocked(true);
       } else {
-        console.error("[login] popup error", e);
+        console.error("[login]", e);
         setError((e as Error).message);
       }
       setLoading(false);
@@ -93,6 +61,14 @@ export default function LoginClient() {
           </svg>
           {loading ? "מתחבר..." : "המשך עם Google"}
         </button>
+        {popupBlocked && (
+          <div className="text-sm bg-(--color-gold)/20 text-(--color-deep) p-3 rounded-xl space-y-1">
+            <p className="font-medium">חלון ההתחברות נחסם</p>
+            <p className="text-xs opacity-80">
+              הדפדפן חסם את חלון הקופץ. לחץ שוב על הכפתור או אפשר חלונות קופצים עבור האתר ונסה שוב
+            </p>
+          </div>
+        )}
         {error && (
           <p className="text-(--vis-red) text-sm" role="alert">
             {error}
