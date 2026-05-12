@@ -138,7 +138,7 @@ export default function AddressPicker({ value, onChange }: Props) {
   function runSearch(q: string) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      if (q.trim().length < 3) {
+      if (q.trim().length < 2) {
         setSuggestions([]);
         return;
       }
@@ -174,6 +174,7 @@ export default function AddressPicker({ value, onChange }: Props) {
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
+            onChange({ ...value, address: e.target.value });
             runSearch(e.target.value);
           }}
           onFocus={() => suggestions.length > 0 && setOpen(true)}

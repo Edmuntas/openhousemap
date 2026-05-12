@@ -23,6 +23,7 @@ import {
   APARTMENT_LIKE_TYPES,
 } from "@/types/event";
 import type { AddressValue } from "./AddressPicker";
+import TimeSelect from "./TimeSelect";
 
 const AddressPicker = dynamic(() => import("./AddressPicker"), {
   ssr: false,
@@ -514,21 +515,17 @@ export default function CreateEventClient() {
             />
           </Field>
           <Field label="שעת התחלה">
-            <input
+            <TimeSelect
               required
-              type="time"
               value={form.startTime}
-              onChange={(e) => update("startTime", e.target.value)}
-              className="input"
+              onChange={(v) => update("startTime", v)}
             />
           </Field>
           <Field label="שעת סיום">
-            <input
+            <TimeSelect
               required
-              type="time"
               value={form.endTime}
-              onChange={(e) => update("endTime", e.target.value)}
-              className="input"
+              onChange={(v) => update("endTime", v)}
             />
           </Field>
         </div>
@@ -568,24 +565,58 @@ export default function CreateEventClient() {
 
         {t !== "land" && (
           <Field label={`תמונות (${photos.length}/10)`}>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => handlePhotos(e.target.files)}
-              disabled={uploading || photos.length >= 10}
-              className="block w-full text-sm text-(--color-moss)"
-            />
+            <label
+              className={`block border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-colors ${
+                uploading || photos.length >= 10
+                  ? "border-(--color-cream) bg-(--color-cream)/30 cursor-not-allowed opacity-60"
+                  : "border-(--color-moss)/40 bg-(--color-cream)/30 hover:border-(--color-moss) hover:bg-(--color-cream)/60"
+              }`}
+            >
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  handlePhotos(e.target.files);
+                  e.target.value = "";
+                }}
+                disabled={uploading || photos.length >= 10}
+                className="sr-only"
+              />
+              <div className="text-(--color-deep) font-medium">
+                {uploading
+                  ? "מעלה..."
+                  : photos.length >= 10
+                  ? "הגעת ל-10 תמונות"
+                  : "📸 בחר תמונות או צלם"}
+              </div>
+              <div className="text-xs text-(--color-moss) mt-1">
+                {photos.length === 0
+                  ? "JPG / PNG · עד 10 תמונות"
+                  : `${photos.length}/10 תמונות הועלו · לחץ להוספה`}
+              </div>
+            </label>
             {photos.length > 0 && (
-              <div className="grid grid-cols-5 gap-2 mt-2">
+              <div className="grid grid-cols-5 gap-2 mt-3">
                 {photos.map((p, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={i}
-                    src={p.thumb}
-                    alt=""
-                    className="w-full h-20 object-cover rounded-lg"
-                  />
+                  <div key={i} className="relative group">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={p.thumb}
+                      alt=""
+                      className="w-full h-20 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPhotos((prev) => prev.filter((_, idx) => idx !== i))
+                      }
+                      className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-(--vis-red) text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="מחק"
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -599,7 +630,14 @@ export default function CreateEventClient() {
               type="button"
               onClick={generateAiDescription}
               disabled={generatingDesc || !form.address.address || !form.price}
-              className="bg-(--color-gold)/30 text-(--color-deep) px-3 py-1.5 rounded-lg text-sm hover:bg-(--color-gold)/50 disabled:opacity-50"
+              title={
+                !form.address.address
+                  ? "הזן כתובת קודם"
+                  : !form.price
+                  ? "הזן מחיר קודם"
+                  : ""
+              }
+              className="bg-(--color-gold)/30 text-(--color-deep) px-3 py-1.5 rounded-lg text-sm hover:bg-(--color-gold)/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generatingDesc ? "מייצר..." : "✨ צור עם AI"}
             </button>

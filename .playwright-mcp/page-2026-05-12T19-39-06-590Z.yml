@@ -1,0 +1,16 @@
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - heading "התחבר" [level=1] [ref=e5]
+      - paragraph [ref=e6]: התחבר לחשבון OpenHouse Map שלך כדי לפרסם בתים פתוחים, לראות RSVPs ולנהל את הלוח שלך
+      - button "המשך עם Google" [ref=e7]:
+        - img [ref=e8]
+        - text: המשך עם Google
+      - paragraph [ref=e11]:
+        - text: בהתחברות אתה מסכים ל
+        - link "תנאי השימוש" [ref=e12] [cursor=pointer]:
+          - /url: /terms
+        - text: ו
+        - link "מדיניות הפרטיות" [ref=e13] [cursor=pointer]:
+          - /url: /privacy
+  - alert [ref=e14]
