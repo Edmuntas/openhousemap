@@ -54,14 +54,10 @@ export async function GET(req: NextRequest) {
 
   let features = [...photonResults, ...nominatimResults];
 
-  if (type === "address" && city) {
-    features = features.filter((f) => {
-      const ctxCity = f.context.find((c) => c.id.startsWith("place."))?.text;
-      const inPlace = (ctxCity ?? "").toLowerCase();
-      const inName = f.place_name.toLowerCase();
-      return inPlace.includes(city) || inName.includes(city);
-    });
-  }
+  // For addresses with a "near" bias, sort by proximity but DON'T hard-filter
+  // by city name — Hebrew streets often have prefixes (שדרות, רחוב, דרך) that
+  // change between Photon and Nominatim, and OSM city tag may be missing on
+  // some address features. Trust the geographic distance instead.
   if (type === "address" && nearLatLng) {
     features = features
       .map((f) => ({
@@ -72,9 +68,25 @@ export async function GET(req: NextRequest) {
             (f.center[1] - nearLatLng!.lat) ** 2 +
               (f.center[0] - nearLatLng!.lng) ** 2
           ) *
-            50,
+            80,
       }))
       .sort((a, b) => b._score - a._score);
+
+    // Drop anything > ~25km from the city center (rough cutoff for IL towns)
+    features = features.filter((f) => {
+      const d = Math.sqrt(
+        (f.center[1] - nearLatLng!.lat) ** 2 +
+          (f.center[0] - nearLatLng!.lng) ** 2
+      );
+      return d < 0.25; // ~25km in degrees
+    });
+  } else if (type === "address" && city) {
+    features = features.filter((f) => {
+      const ctxCity = f.context.find((c) => c.id.startsWith("place."))?.text;
+      const inPlace = (ctxCity ?? "").toLowerCase();
+      const inName = f.place_name.toLowerCase();
+      return inPlace.includes(city) || inName.includes(city);
+    });
   }
 
   features = dedupeFeatures(features).slice(0, 8);
