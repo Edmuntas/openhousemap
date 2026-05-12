@@ -252,12 +252,40 @@ export default function CreateEventClient() {
     setError(null);
     setSubmitting(true);
     try {
-      const { lat, lng } = form.address;
-      if (!lat || !lng) {
-        throw new Error("בחר כתובת מהאוטוקומפליט או לחץ על המפה");
+      if (!form.address.address) {
+        throw new Error("הזן כתובת");
       }
-      if (!form.address.address || !form.address.city) {
-        throw new Error("חסר פרטי כתובת");
+
+      let { lat, lng } = form.address;
+      let city = form.address.city;
+      let addressText = form.address.address;
+
+      // If user typed an address but didn't pick a suggestion or click the
+      // map, geocode the text now and use the top match.
+      if (!lat || !lng) {
+        const resp = await fetch(
+          `/api/geocode?q=${encodeURIComponent(addressText)}`
+        );
+        const data = await resp.json();
+        const top = (data.features ?? [])[0];
+        if (!top) {
+          throw new Error(
+            "לא נמצאה כתובת תואמת. נסה לחפש שוב או לחץ על המפה לבחירת מיקום"
+          );
+        }
+        lng = top.center[0];
+        lat = top.center[1];
+        addressText = top.place_name ?? addressText;
+        const placeCtx = top.context?.find((c: { id: string }) =>
+          c.id.startsWith("place.")
+        );
+        if (!city && placeCtx) city = placeCtx.text;
+      }
+
+      if (!city) city = addressText.split(",").slice(-2, -1)[0]?.trim() ?? "";
+
+      if (lat == null || lng == null) {
+        throw new Error("מיקום לא נמצא");
       }
       const geohash = ngeohash.encode(lat, lng, 9);
       const eventRef = doc(db, "events", eventId);
@@ -269,8 +297,8 @@ export default function CreateEventClient() {
 
       const docData: Record<string, unknown> = {
         ownerId: auth.currentUser.uid,
-        address: form.address.address,
-        city: form.address.city,
+        address: addressText,
+        city,
         coordinates: { lat, lng },
         geohash,
         propertyType: t,
