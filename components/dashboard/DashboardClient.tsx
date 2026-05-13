@@ -113,11 +113,17 @@ export default function DashboardClient() {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+          >
+            🗺 חזרה למפה
+          </Link>
           {isRealtor && (
             <Link
               href="/create"
-              className="bg-(--color-moss) text-(--color-ivory) px-4 py-2 rounded-xl font-medium hover:bg-(--color-forest) transition-colors"
+              className="inline-flex items-center bg-(--color-moss) text-(--color-ivory) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-forest) transition-colors active:scale-[0.97]"
             >
               + Open House חדש
             </Link>
@@ -128,7 +134,7 @@ export default function DashboardClient() {
               await signOut(auth);
               router.push("/");
             }}
-            className="bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm hover:bg-(--color-sage)/40"
+            className="bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
           >
             התנתק
           </button>
