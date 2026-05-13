@@ -8,6 +8,7 @@ import EventFilters, { type FilterState } from "@/components/events/EventFilters
 import EventPopup from "@/components/events/EventPopup";
 import MobileSheet, { type Snap } from "@/components/ui/MobileSheet";
 import { useEvents, type EventWithId } from "@/hooks/useEvents";
+import { useMyFavourites } from "@/hooks/useFavourite";
 
 export default function MapHomeClient() {
   const t = useTranslations("app");
@@ -15,11 +16,14 @@ export default function MapHomeClient() {
     city: "",
     propertyType: "all",
     timeRange: "all",
+    onlyFavourites: false,
   });
   const [selected, setSelected] = useState<EventWithId | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [sheetSnap, setSheetSnap] = useState<Snap>("collapsed");
   const { events, loading } = useEvents();
+  const { eventIds: favouriteIds } = useMyFavourites();
+  const favSet = useMemo(() => new Set(favouriteIds), [favouriteIds]);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -46,9 +50,10 @@ export default function MapHomeClient() {
       }
       if (filters.timeRange === "today" && e.date !== todayIso) return false;
       if (filters.timeRange === "week" && e.date > weekIso) return false;
+      if (filters.onlyFavourites && !favSet.has(e.id)) return false;
       return true;
     });
-  }, [events, filters]);
+  }, [events, filters, favSet]);
 
   const sidebarContent = (
     <>

@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface FilterState {
   city: string;
-  propertyType: "all" | "apartment" | "house" | "penthouse";
+  propertyType: "all" | "apartment" | "house";
   timeRange: "today" | "week" | "all";
+  onlyFavourites: boolean;
 }
 
 interface EventFiltersProps {
@@ -15,12 +18,13 @@ interface EventFiltersProps {
 
 export default function EventFilters({ value, onChange }: EventFiltersProps) {
   const [cityInput, setCityInput] = useState(value.city);
+  const router = useRouter();
+  const { user } = useAuth();
 
   const propertyTypes: { value: FilterState["propertyType"]; label: string }[] = [
     { value: "all", label: "הכול" },
     { value: "apartment", label: "🏢 דירה" },
     { value: "house", label: "🏠 בית" },
-    { value: "penthouse", label: "🏙 פנטהאוס" },
   ];
 
   const timeRanges: { value: FilterState["timeRange"]; label: string }[] = [
@@ -28,6 +32,14 @@ export default function EventFilters({ value, onChange }: EventFiltersProps) {
     { value: "week", label: "השבוע" },
     { value: "all", label: "הכול" },
   ];
+
+  function toggleFavourites() {
+    if (!user) {
+      router.push("/login?next=/");
+      return;
+    }
+    onChange({ ...value, onlyFavourites: !value.onlyFavourites });
+  }
 
   return (
     <div className="p-3 bg-(--surface) border-b border-(--color-cream) space-y-2">
@@ -57,6 +69,18 @@ export default function EventFilters({ value, onChange }: EventFiltersProps) {
             {pt.label}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={toggleFavourites}
+          aria-pressed={value.onlyFavourites}
+          className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+            value.onlyFavourites
+              ? "bg-(--color-gold) text-(--color-deep) font-medium"
+              : "bg-(--color-cream) text-(--color-deep) hover:bg-(--color-gold)/40"
+          }`}
+        >
+          {value.onlyFavourites ? "★" : "☆"} מועדפים
+        </button>
       </div>
       <div className="flex gap-1">
         {timeRanges.map((tr) => (
