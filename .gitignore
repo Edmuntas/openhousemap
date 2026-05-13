@@ -80,3 +80,8 @@ flyto-*.jpg
 step*.jpg
 final*.jpg
 popup-*.jpg
+
+# Claude Code — keep skills and plugins, ignore local settings
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/.claude.bak/
