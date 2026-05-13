@@ -140,23 +140,29 @@ export default function MapHomeClient() {
     );
   }
 
-  // ----- Desktop: sidebar left of map -----
+  // ----- Desktop: in RTL the sidebar belongs on the VISUAL RIGHT (mirror of
+  // Western "sidebar-left" pattern). DOM order = aside first, map second.
+  // dir=rtl on <html> + plain flex-row places aside on the right naturally,
+  // no `order-*` reordering needed. border-r instead of border-l so the
+  // sidebar separator sits between sidebar (right) and map (left). -----
   return (
-    <main className="flex flex-row h-svh-safe overflow-hidden pl-safe pr-safe">
-      <aside className="w-[380px] flex-shrink-0 bg-(--surface) border-l border-(--color-cream) flex flex-col overflow-hidden order-2">
+    <main className="flex flex-row h-svh-safe overflow-hidden">
+      <aside className="w-[380px] flex-shrink-0 bg-(--surface) border-l border-(--color-cream) flex flex-col overflow-hidden">
         <header className="px-4 pt-3 pb-3 border-b border-(--color-cream) flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight truncate">
               {t("name")}
             </h1>
-            <p className="text-xs text-(--color-moss) font-medium">{t("tagline")}</p>
+            <p className="text-xs text-(--color-moss) font-medium truncate">
+              {t("tagline")}
+            </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {isRealtor && (
               <Link
                 href="/create"
                 aria-label="פרסם בית פתוח חדש"
-                className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 text-sm font-medium hover:bg-(--color-forest) active:scale-[0.97] transition-all"
+                className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 text-sm font-medium hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
               >
                 <Plus className="w-4 h-4" />
                 Open House
@@ -165,10 +171,10 @@ export default function MapHomeClient() {
             <Link
               href={user ? "/dashboard" : "/login?next=/dashboard"}
               aria-label="הפרופיל שלי"
-              className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ring-2 ring-(--color-moss)/20 hover:ring-(--color-moss)/50 ${
+              className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ring-2 ${
                 user
-                  ? "bg-(--color-moss) text-(--color-ivory)"
-                  : "bg-(--color-cream) text-(--color-deep)"
+                  ? "bg-(--color-moss) text-(--color-ivory) ring-(--color-moss)/30 hover:ring-(--color-moss)/60"
+                  : "bg-(--color-cream) text-(--color-deep) ring-(--color-moss)/20 hover:ring-(--color-moss)/50"
               }`}
             >
               {user ? <UserRound className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
@@ -178,7 +184,7 @@ export default function MapHomeClient() {
         <div className="flex-1 overflow-y-auto">{sidebarContent}</div>
       </aside>
 
-      <section className="flex-1 relative order-1">
+      <section className="flex-1 relative">
         <MapContainer onEventSelect={setSelected} selectedEvent={selected} />
         <EventPopup event={selected} onClose={() => setSelected(null)} />
       </section>
