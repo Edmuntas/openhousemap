@@ -252,12 +252,21 @@ export default function CreateEventClient() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!auth.currentUser) return;
     setError(null);
     setSubmitting(true);
     try {
+      if (!auth.currentUser) {
+        throw new Error("ההתחברות פגה — היכנס שוב והגש מחדש");
+      }
       if (!form.address.address) {
         throw new Error("הזן כתובת");
+      }
+      const priceNum = Number(form.price);
+      if (!priceNum || priceNum <= 0) {
+        throw new Error("הזן מחיר תקין (גדול מ-0)");
+      }
+      if (!form.date) {
+        throw new Error("בחר תאריך");
       }
       if (t !== "land" && photos.length === 0) {
         throw new Error("העלה לפחות תמונה אחת של הנכס");
@@ -359,9 +368,15 @@ export default function CreateEventClient() {
       await setDoc(eventRef, docData);
       router.push(`/e/${eventId}`);
     } catch (e) {
-      console.error(e);
-      setError((e as Error).message);
+      console.error("[create] submit failed:", e);
+      setError((e as Error).message || "אירעה שגיאה בפרסום. נסה שוב.");
       setSubmitting(false);
+      // Scroll the inline error into view (helpful on long mobile form)
+      requestAnimationFrame(() => {
+        document
+          .querySelector('[role="alert"]')
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
     }
   }
 
