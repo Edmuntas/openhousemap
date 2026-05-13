@@ -61,10 +61,15 @@ export default function MapInner({ onEventSelect, selectedEvent }: MapInnerProps
           "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
+      // Hide Leaflet zoom buttons on mobile (pinch-zoom is standard);
+      // keep them on desktop where they don't conflict with the floating chrome.
+      const isMobileViewport =
+        typeof window !== "undefined" &&
+        window.matchMedia("(max-width: 767px)").matches;
       map = L.map(containerRef.current, {
         center: ISRAEL_CENTER,
         zoom: DEFAULT_ZOOM,
-        zoomControl: true,
+        zoomControl: !isMobileViewport,
       });
 
       // Real-estate style map: CartoDB Positron — pale, minimal, lets the

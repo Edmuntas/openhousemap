@@ -90,40 +90,43 @@ export default function MapHomeClient() {
           />
         </div>
 
-        {/* Floating top chrome: brand chip + profile + (realtor) create button */}
-        <div className="absolute top-0 inset-x-0 pl-safe pr-safe pt-safe z-[1200] flex justify-between items-center gap-2 px-3">
-          {/* Right cluster in RTL = first in DOM: brand chip */}
-          <div className="bg-(--surface)/95 backdrop-blur rounded-full px-4 py-1.5 shadow-md">
-            <h1 className="text-sm font-[var(--font-display)] font-semibold text-(--color-deep) leading-tight">
-              {t("name")}
-            </h1>
-          </div>
-
-          {/* Left cluster in RTL: + Open House (realtors only) + profile */}
-          <div className="flex items-center gap-2">
-            {isRealtor && (
-              <Link
-                href="/create"
-                aria-label="פרסם בית פתוח חדש"
-                className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 shadow-md text-sm font-medium hover:bg-(--color-forest) active:scale-[0.97] transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                Open House
-              </Link>
-            )}
+        {/* Floating top chrome — minimal & non-overlapping. Brand on visual
+            right (RTL natural), action FABs on visual left. */}
+        <div className="absolute top-0 inset-x-0 pt-safe pl-safe pr-safe z-[1200] pointer-events-none">
+          <div className="flex items-start justify-between gap-2 px-3 py-3">
+            <div className="bg-(--surface)/95 backdrop-blur rounded-full px-3 py-1.5 shadow-md pointer-events-auto">
+              <h1 className="text-xs font-[var(--font-display)] font-bold text-(--color-deep) leading-tight tracking-tight">
+                {t("name")}
+              </h1>
+            </div>
             <Link
               href={user ? "/dashboard" : "/login?next=/dashboard"}
               aria-label="הפרופיל שלי"
-              className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all active:scale-95 ring-2 ring-(--color-moss)/20 hover:ring-(--color-moss)/50 ${
+              className={`pointer-events-auto shrink-0 w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-all active:scale-95 ring-2 ${
                 user
-                  ? "bg-(--color-moss) text-(--color-ivory)"
-                  : "bg-(--surface)/95 backdrop-blur text-(--color-deep)"
+                  ? "bg-(--color-moss) text-(--color-ivory) ring-(--color-ivory)/70"
+                  : "bg-(--surface)/95 backdrop-blur text-(--color-deep) ring-(--color-moss)/20"
               }`}
             >
               {user ? <UserRound className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
             </Link>
           </div>
         </div>
+
+        {/* Floating action button: '+ Open House' for verified realtors.
+            Positioned bottom-right above the collapsed sheet (58px) so it
+            never collides with map chrome. Hides when sheet is expanded or
+            popup is open. */}
+        {isRealtor && !selected && sheetSnap === "collapsed" && (
+          <Link
+            href="/create"
+            aria-label="פרסם בית פתוח חדש"
+            className="absolute bottom-[80px] left-4 pl-safe z-[1250] inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-4 pr-3 py-2.5 shadow-lg text-sm font-semibold hover:bg-(--color-forest) active:scale-[0.97] transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            Open House
+          </Link>
+        )}
 
         <MobileSheet
           countLabel={`${filtered.length} בתים פתוחים`}
