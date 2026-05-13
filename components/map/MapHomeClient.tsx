@@ -11,7 +11,7 @@ import MobileSheet, { type Snap } from "@/components/ui/MobileSheet";
 import { useEvents, type EventWithId } from "@/hooks/useEvents";
 import { useMyFavourites } from "@/hooks/useFavourite";
 import { useAuth } from "@/hooks/useAuth";
-import { UserRound, LogIn } from "lucide-react";
+import { UserRound, LogIn, Plus } from "lucide-react";
 
 export default function MapHomeClient() {
   const t = useTranslations("app");
@@ -27,7 +27,8 @@ export default function MapHomeClient() {
   const { events, loading } = useEvents();
   const { eventIds: favouriteIds } = useMyFavourites();
   const favSet = useMemo(() => new Set(favouriteIds), [favouriteIds]);
-  const { user } = useAuth();
+  const { user, claims } = useAuth();
+  const isRealtor = !!(claims?.verified || claims?.admin);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -89,20 +90,39 @@ export default function MapHomeClient() {
           />
         </div>
 
-        {/* Floating brand chip + profile shortcut at top, respects Dynamic Island */}
-        <div className="absolute top-0 inset-x-0 pl-safe pr-safe pt-safe z-[1200] flex justify-center items-center gap-2 px-3">
+        {/* Floating top chrome: brand chip + profile + (realtor) create button */}
+        <div className="absolute top-0 inset-x-0 pl-safe pr-safe pt-safe z-[1200] flex justify-between items-center gap-2 px-3">
+          {/* Right cluster in RTL = first in DOM: brand chip */}
           <div className="bg-(--surface)/95 backdrop-blur rounded-full px-4 py-1.5 shadow-md">
-            <h1 className="text-sm font-[var(--font-display)] text-(--color-deep) leading-tight">
+            <h1 className="text-sm font-[var(--font-display)] font-semibold text-(--color-deep) leading-tight">
               {t("name")}
             </h1>
           </div>
-          <Link
-            href={user ? "/dashboard" : "/login?next=/dashboard"}
-            aria-label="הפרופיל שלי"
-            className="bg-(--surface)/95 backdrop-blur rounded-full w-9 h-9 shadow-md flex items-center justify-center text-(--color-deep) hover:bg-(--color-cream) transition-colors"
-          >
-            {user ? <UserRound className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-          </Link>
+
+          {/* Left cluster in RTL: + Open House (realtors only) + profile */}
+          <div className="flex items-center gap-2">
+            {isRealtor && (
+              <Link
+                href="/create"
+                aria-label="פרסם בית פתוח חדש"
+                className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 shadow-md text-sm font-medium hover:bg-(--color-forest) active:scale-[0.97] transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                Open House
+              </Link>
+            )}
+            <Link
+              href={user ? "/dashboard" : "/login?next=/dashboard"}
+              aria-label="הפרופיל שלי"
+              className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all active:scale-95 ring-2 ring-(--color-moss)/20 hover:ring-(--color-moss)/50 ${
+                user
+                  ? "bg-(--color-moss) text-(--color-ivory)"
+                  : "bg-(--surface)/95 backdrop-blur text-(--color-deep)"
+              }`}
+            >
+              {user ? <UserRound className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
+            </Link>
+          </div>
         </div>
 
         <MobileSheet
@@ -125,18 +145,34 @@ export default function MapHomeClient() {
       <aside className="w-[380px] flex-shrink-0 bg-(--surface) border-l border-(--color-cream) flex flex-col overflow-hidden order-2">
         <header className="px-4 pt-3 pb-3 border-b border-(--color-cream) flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-[var(--font-display)] text-(--color-deep)">
+            <h1 className="text-2xl font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight">
               {t("name")}
             </h1>
-            <p className="text-xs text-(--color-moss)">{t("tagline")}</p>
+            <p className="text-xs text-(--color-moss) font-medium">{t("tagline")}</p>
           </div>
-          <Link
-            href={user ? "/dashboard" : "/login?next=/dashboard"}
-            aria-label="הפרופיל שלי"
-            className="shrink-0 w-9 h-9 rounded-full bg-(--color-cream) hover:bg-(--color-sage)/40 flex items-center justify-center text-(--color-deep)"
-          >
-            {user ? <UserRound className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            {isRealtor && (
+              <Link
+                href="/create"
+                aria-label="פרסם בית פתוח חדש"
+                className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 text-sm font-medium hover:bg-(--color-forest) active:scale-[0.97] transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                Open House
+              </Link>
+            )}
+            <Link
+              href={user ? "/dashboard" : "/login?next=/dashboard"}
+              aria-label="הפרופיל שלי"
+              className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ring-2 ring-(--color-moss)/20 hover:ring-(--color-moss)/50 ${
+                user
+                  ? "bg-(--color-moss) text-(--color-ivory)"
+                  : "bg-(--color-cream) text-(--color-deep)"
+              }`}
+            >
+              {user ? <UserRound className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
+            </Link>
+          </div>
         </header>
         <div className="flex-1 overflow-y-auto">{sidebarContent}</div>
       </aside>
