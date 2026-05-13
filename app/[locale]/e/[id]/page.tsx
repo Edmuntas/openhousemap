@@ -4,7 +4,23 @@ import { getEventById } from "@/lib/event-server";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import EventActionsClient from "@/components/events/EventActionsClient";
 import PhotoGallery from "@/components/ui/PhotoGallery";
-import { ArrowRight, Calendar as CalendarIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Calendar as CalendarIcon,
+  Sofa,
+  Ruler,
+  Trees,
+  Sprout,
+  Sun,
+  Layers,
+  Bath,
+  ParkingSquare,
+  FileText,
+  User,
+  Briefcase,
+  BadgeCheck,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export const revalidate = 60;
 
@@ -97,30 +113,44 @@ export default async function EventDetailPage({
       </header>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-        {event.rooms != null && <Stat label="חדרים" value={String(event.rooms)} />}
-        {event.size != null && <Stat label="מ״ר בנוי" value={String(event.size)} />}
-        {event.plotSize != null && <Stat label="מ״ר מגרש" value={String(event.plotSize)} />}
-        {event.gardenSize != null && <Stat label="מ״ר גינה" value={String(event.gardenSize)} />}
+        {event.rooms != null && (
+          <Stat label="חדרים" value={String(event.rooms)} Icon={Sofa} />
+        )}
+        {event.size != null && (
+          <Stat label="מ״ר בנוי" value={String(event.size)} Icon={Ruler} />
+        )}
+        {event.plotSize != null && (
+          <Stat label="מ״ר מגרש" value={String(event.plotSize)} Icon={Trees} />
+        )}
+        {event.gardenSize != null && (
+          <Stat label="מ״ר גינה" value={String(event.gardenSize)} Icon={Sprout} />
+        )}
         {event.roofTerraceSize != null && (
-          <Stat label="מ״ר גג" value={String(event.roofTerraceSize)} />
+          <Stat label="מ״ר גג" value={String(event.roofTerraceSize)} Icon={Sun} />
         )}
         {event.floor != null && (
           <Stat
             label="קומה"
             value={`${event.floor}/${event.totalFloors ?? "?"}`}
+            Icon={Layers}
           />
         )}
         {event.bathrooms != null && (
-          <Stat label="שירותים" value={String(event.bathrooms)} />
+          <Stat label="שירותים" value={String(event.bathrooms)} Icon={Bath} />
         )}
-        <Stat label="חניה" value={event.parking ? "כן" : "—"} />
+        <Stat
+          label="חניה"
+          value={event.parking ? "כן" : "—"}
+          Icon={ParkingSquare}
+        />
       </section>
 
       <PhotoGallery photos={event.photos} alt={event.address} aspect="video" />
 
       {event.description.he && (
         <section className="relative bg-gradient-to-br from-(--color-cream) to-(--color-cream)/60 rounded-2xl p-6 ring-1 ring-(--color-moss)/10">
-          <h2 className="text-base font-[var(--font-display)] font-semibold mb-3 text-(--color-moss) tracking-wide uppercase">
+          <h2 className="inline-flex items-center gap-2 text-base font-[var(--font-display)] font-semibold mb-3 text-(--color-moss) tracking-wide uppercase">
+            <FileText className="w-4 h-4" />
             תיאור
           </h2>
           <p className="text-(--color-deep) leading-relaxed whitespace-pre-line">
@@ -129,13 +159,16 @@ export default async function EventDetailPage({
         </section>
       )}
 
-      <section className="border-t border-(--color-cream) pt-5 text-sm text-(--color-deep) space-y-1">
-        <p className="font-medium">
+      <section className="border-t border-(--color-cream) pt-5 text-sm text-(--color-deep) space-y-2">
+        <p className="inline-flex items-center gap-2 font-semibold">
+          <User className="w-4 h-4 text-(--color-moss)" />
           {event.realtorSnapshot.name} {event.realtorSnapshot.surname}
         </p>
-        <p className="text-(--color-moss)">
-          {event.realtorSnapshot.officeName} · רישיון{" "}
-          {event.realtorSnapshot.licenseNumber}
+        <p className="inline-flex items-center gap-2 text-(--color-moss)">
+          <Briefcase className="w-3.5 h-3.5" />
+          {event.realtorSnapshot.officeName}
+          <BadgeCheck className="w-3.5 h-3.5 ms-2" />
+          רישיון <span dir="ltr">{event.realtorSnapshot.licenseNumber}</span>
         </p>
       </section>
 
@@ -144,13 +177,24 @@ export default async function EventDetailPage({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  Icon,
+}: {
+  label: string;
+  value: string;
+  Icon?: LucideIcon;
+}) {
   return (
     <div className="bg-(--color-cream)/70 backdrop-blur rounded-2xl p-3.5 ring-1 ring-(--color-moss)/10 hover:ring-(--color-moss)/25 transition-shadow">
-      <div className="text-3xl font-[var(--font-display)] font-semibold text-(--color-deep) leading-none">
+      {Icon && (
+        <Icon className="w-4 h-4 text-(--color-moss) mx-auto mb-1.5" aria-hidden />
+      )}
+      <div className="text-3xl font-[var(--font-display)] font-bold text-(--color-deep) leading-none">
         {value}
       </div>
-      <div className="text-xs text-(--color-moss) mt-1.5 tracking-wide">
+      <div className="text-xs text-(--color-moss) mt-1.5 tracking-wide font-medium">
         {label}
       </div>
     </div>

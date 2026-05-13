@@ -104,7 +104,7 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
 
       <div className="p-5 space-y-3">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-2xl font-[var(--font-display)] text-(--color-deep)">
+          <h2 className="text-2xl font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight">
             {formatPriceFull(event.price)}
           </h2>
           <span
@@ -118,8 +118,8 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
           </span>
         </div>
 
-        <p className="text-(--color-deep) font-medium leading-tight">{event.address}</p>
-        <p className="text-sm text-(--color-moss)">
+        <p className="text-(--color-deep) font-semibold leading-tight text-lg">{event.address}</p>
+        <p className="text-sm text-(--color-moss) font-medium">
           {[
             event.rooms != null && `${event.rooms} חד׳`,
             event.size != null && `${event.size}m²`,

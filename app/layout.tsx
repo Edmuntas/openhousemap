@@ -5,11 +5,12 @@ import "./globals.css";
 // Rubik covers hebrew + latin + cyrillic in one family. Earlier Syne/DM_Sans
 // were latin-only so hebrew text was rendering in the OS fallback font and
 // the interface looked inconsistent.
-// Trim weights to what's actually used (was 6 weights, ~270KB; now 3 = ~135KB)
+// 400 / 500 / 600 / 700 — base body uses 500 (hebrew Rubik reads thinner than
+// Latin at the same weight, so we shifted the baseline up one notch).
 const rubik = Rubik({
   variable: "--font-rubik",
   subsets: ["latin", "hebrew"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 

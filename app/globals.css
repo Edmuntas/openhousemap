@@ -71,6 +71,10 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-rubik), 'Rubik', system-ui, sans-serif;
+  /* Rubik Hebrew renders ~1 weight thinner than Latin at the same number,
+     so bump base body weight from 400 to 500 for better readability. */
+  font-weight: 500;
+  font-feature-settings: "cv11", "ss03"; /* alt forms for richer typography */
 }
 
 /* iOS safe-area utilities — Dynamic Island, notch, home bar.
