@@ -138,7 +138,7 @@ export default function DashboardClient() {
               className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-forest) transition-colors active:scale-[0.97]"
             >
               <Plus className="w-4 h-4" />
-              Open House חדש
+              Open House
             </Link>
           )}
           <button
@@ -350,7 +350,7 @@ function OwnedList({
       <EmptyState
         emoji="🏠"
         text="טרם פרסמת אירועים"
-        cta={{ href: "/create", label: "צור Open House ראשון" }}
+        cta={{ href: "/create", label: "+ Open House" }}
       />
     );
   }

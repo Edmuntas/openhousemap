@@ -428,10 +428,15 @@ export default function CreateEventClient() {
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-[var(--font-display)] text-(--color-deep) mb-6">
-        צור Open House חדש
-      </h1>
+    <main className="max-w-2xl mx-auto px-4 py-8 pt-safe">
+      <header className="mb-6">
+        <p className="text-xs text-(--color-moss) tracking-wide uppercase font-medium">
+          פרסום אירוע
+        </p>
+        <h1 className="text-4xl font-[var(--font-display)] font-bold text-(--color-deep) leading-none tracking-tight mt-1">
+          Open House
+        </h1>
+      </header>
 
       <form onSubmit={submit} noValidate className="space-y-5">
         <Field label="סוג נכס">
@@ -780,7 +785,7 @@ export default function CreateEventClient() {
             ? "שומר..."
             : uploading
             ? "ממתין לתמונות... (אפשר להמשיך)"
-            : "פרסם Open House"}
+            : "פרסם את האירוע"}
         </button>
       </form>
 
