@@ -15,8 +15,10 @@ export async function getEventById(id: string): Promise<ServerEvent | null> {
   if (!snap.exists) return null;
   const data = snap.data();
   if (!data) return null;
-  // Only return events that are publicly viewable on map (matches Firestore rules)
-  if (data.visibility !== "public" || data.status !== "active" || data.mapVisible !== true) {
+  // Only refuse cancelled events from SSR. Previously this also rejected
+  // visibility !== "public", which caused a 404 immediately after a realtor
+  // created a "mixed" or "colleagues" event and got redirected to /e/{id}.
+  if (data.status === "cancelled") {
     return null;
   }
   const toIso = (v: unknown): string | undefined => {

@@ -557,16 +557,16 @@ export default function CreateEventClient() {
           </fieldset>
         )}
 
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="תאריך">
-            <input
-              required
-              type="date"
-              value={form.date}
-              onChange={(e) => update("date", e.target.value)}
-              className="input"
-            />
-          </Field>
+        <Field label="תאריך">
+          <input
+            required
+            type="date"
+            value={form.date}
+            onChange={(e) => update("date", e.target.value)}
+            className="input"
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
           <Field label="שעת התחלה">
             <TimeSelect
               required

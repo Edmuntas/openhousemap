@@ -27,7 +27,13 @@ service cloud.firestore {
       allow create: if (isVerifiedRealtor() || isAdmin())
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.price > 0;
-      allow update, delete: if isOwner(resource.data.ownerId) || isAdmin();
+      // Owner / admin can update or delete, but the owner cannot retitle the
+      // event to a different owner (anti-tampering), nor rewrite createdAt or
+      // feedbackRequested (set by scheduler).
+      allow update: if (isOwner(resource.data.ownerId) || isAdmin())
+        && (isAdmin() || !request.resource.data.diff(resource.data)
+             .affectedKeys().hasAny(['ownerId', 'createdAt', 'feedbackRequested']));
+      allow delete: if isOwner(resource.data.ownerId) || isAdmin();
     }
 
     // Users — own profile only
