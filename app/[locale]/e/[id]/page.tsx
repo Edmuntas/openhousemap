@@ -4,6 +4,7 @@ import { getEventById } from "@/lib/event-server";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import EventActionsClient from "@/components/events/EventActionsClient";
 import PhotoGallery from "@/components/ui/PhotoGallery";
+import Footer from "@/components/layout/Footer";
 import {
   ArrowRight,
   Calendar as CalendarIcon,
@@ -173,6 +174,7 @@ export default async function EventDetailPage({
       </section>
 
       <EventActionsClient event={event} />
+      <Footer variant="compact" />
     </main>
   );
 }
