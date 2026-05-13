@@ -85,3 +85,4 @@ popup-*.jpg
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 .claude/.claude.bak/
+credentials.md
