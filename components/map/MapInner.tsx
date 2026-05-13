@@ -72,25 +72,42 @@ export default function MapInner({ onEventSelect, selectedEvent }: MapInnerProps
         zoomControl: !isMobileViewport,
       });
 
-      // Real-estate style map: CartoDB Positron — pale, minimal, lets the
-      // colored pins stand out. Same style Airbnb/Zillow/Redfin-class apps use.
-      const tileUrl = process.env.NEXT_PUBLIC_MAPTILER_KEY
-        ? `https://api.maptiler.com/maps/basic-v2-light/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`
-        : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png";
-      const labelUrl =
-        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png";
-      L.tileLayer(tileUrl, {
-        attribution: "© OpenStreetMap, © CARTO",
-        maxZoom: 19,
-        subdomains: "abcd",
-      }).addTo(map);
-      // Hebrew labels on top of pale base (Carto Voyager has multilingual labels)
-      L.tileLayer(labelUrl, {
-        attribution: "",
-        maxZoom: 19,
-        subdomains: "abcd",
-        pane: "shadowPane",
-      }).addTo(map);
+      // Tile source:
+      //  - With MapTiler key (preferred): single raster layer, hebrew labels
+      //    via the streets-v2-light style which renders the OSM name:he tag
+      //    where present + falls back to name (also hebrew in Israel).
+      //  - Without key: CartoDB Voyager (pale, English labels). At least
+      //    renders something while the deploy is keyless.
+      const mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+      if (mapTilerKey) {
+        L.tileLayer(
+          `https://api.maptiler.com/maps/streets-v2-light/{z}/{x}/{y}.png?key=${mapTilerKey}`,
+          {
+            attribution:
+              '© <a href="https://www.maptiler.com/copyright/">MapTiler</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19,
+            crossOrigin: true,
+          }
+        ).addTo(map);
+      } else {
+        L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+          {
+            attribution: "© OpenStreetMap, © CARTO",
+            maxZoom: 19,
+            subdomains: "abcd",
+          }
+        ).addTo(map);
+        L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png",
+          {
+            attribution: "",
+            maxZoom: 19,
+            subdomains: "abcd",
+            pane: "shadowPane",
+          }
+        ).addTo(map);
+      }
 
       const cluster = (
         L as unknown as {

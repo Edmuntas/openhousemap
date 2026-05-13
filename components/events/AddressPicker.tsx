@@ -91,7 +91,7 @@ export default function AddressPicker({ value, onChange }: Props) {
       });
       // Same pale real-estate basemap as the homepage map.
       const tileUrl = process.env.NEXT_PUBLIC_MAPTILER_KEY
-        ? `https://api.maptiler.com/maps/basic-v2-light/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`
+        ? `https://api.maptiler.com/maps/streets-v2-light/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`
         : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
       L.tileLayer(tileUrl, {
         attribution: "© OpenStreetMap, © CARTO",
