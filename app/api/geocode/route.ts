@@ -196,10 +196,16 @@ async function ilAddresses(
       const display = houseNumber
         ? `${street} ${houseNumber}, ${cityClean}`
         : `${street}, ${cityClean}`;
-      const search = houseNumber
-        ? `${street} ${houseNumber} ${cityClean}`
-        : `${street} ${cityClean}`;
-      const coords = await resolveCoords(search);
+      // Try precise coords first (with house number); fall back to street
+      // coords if Nominatim can't pin the exact number. This keeps the
+      // suggestion visible — user can drop the pin manually on the map.
+      let coords: [number, number] | null = null;
+      if (houseNumber) {
+        coords = await resolveCoords(`${street} ${houseNumber} ${cityClean}`);
+      }
+      if (!coords) {
+        coords = await resolveCoords(`${street} ${cityClean}`);
+      }
       if (!coords) return null;
       return {
         id: `il-street.${r.סמל_ישוב}.${r.סמל_רחוב}.${houseNumber ?? ""}`,

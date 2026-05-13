@@ -271,7 +271,7 @@ export default function AddressPicker({ value, onChange }: Props) {
             searchCity(e.target.value);
           }}
           onFocus={() => citySuggestions.length > 0 && setCityOpen(true)}
-          onBlur={() => setTimeout(() => setCityOpen(false), 150)}
+          onBlur={() => setTimeout(() => setCityOpen(false), 350)}
           placeholder='לדוגמה: זכרון יעקב, תל אביב'
           className="input"
           required
@@ -316,7 +316,7 @@ export default function AddressPicker({ value, onChange }: Props) {
             searchAddress(e.target.value);
           }}
           onFocus={() => addressSuggestions.length > 0 && setAddressOpen(true)}
-          onBlur={() => setTimeout(() => setAddressOpen(false), 150)}
+          onBlur={() => setTimeout(() => setAddressOpen(false), 350)}
           placeholder={city ? "לדוגמה: בן גוריון 35" : "בחר עיר קודם"}
           className="input"
           required
