@@ -69,7 +69,8 @@ export default function EventList({
                 {ev.address}
               </div>
               <div className="text-xs text-(--color-moss)">
-                {ev.date} · {ev.startTime}–{ev.endTime}
+                <span dir="ltr">{ev.date}</span> ·{" "}
+                <span dir="ltr">{ev.startTime}–{ev.endTime}</span>
                 {ev.rooms != null && ` · ${ev.rooms} חד׳`}
               </div>
             </div>

@@ -76,7 +76,10 @@ export default function PhotoLightbox({ photos, startIndex, alt, onClose }: Prop
         ✕
       </button>
 
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 text-white/90 text-sm font-medium pointer-events-none">
+      <div
+        dir="ltr"
+        className="absolute top-4 left-1/2 -translate-x-1/2 z-10 text-white/90 text-sm font-medium pointer-events-none"
+      >
         {index + 1} / {photos.length}
       </div>
 

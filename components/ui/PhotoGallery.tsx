@@ -113,7 +113,10 @@ export default function PhotoGallery({ photos, alt, aspect = "video" }: Props) {
               ))}
             </div>
 
-            <div className="absolute top-2 left-2 rtl:left-auto rtl:right-2 px-2 py-0.5 rounded-full bg-(--color-deep)/70 text-(--color-ivory) text-xs">
+            <div
+              dir="ltr"
+              className="absolute top-2 left-2 rtl:left-auto rtl:right-2 px-2 py-0.5 rounded-full bg-(--color-deep)/70 text-(--color-ivory) text-xs"
+            >
               {index + 1} / {photos.length}
             </div>
           </>

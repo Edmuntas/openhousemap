@@ -21,7 +21,8 @@ export default function DashboardEventCard({ event }: { event: EventWithId }) {
           </div>
           <div className="text-sm text-(--color-deep)">{event.address}</div>
           <div className="text-xs text-(--color-moss)">
-            {event.date} · {event.startTime}–{event.endTime}
+            <span dir="ltr">{event.date}</span> ·{" "}
+            <span dir="ltr">{event.startTime}–{event.endTime}</span>
             {event.rooms != null && ` · ${event.rooms} חד׳`}
           </div>
         </div>

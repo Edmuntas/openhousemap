@@ -85,9 +85,12 @@ export default async function EventDetailPage({
         </p>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--color-cream) text-(--color-deep) text-sm">
           <span aria-hidden>📅</span>
-          <span className="font-medium">{event.date}</span>
+          <span className="font-medium" dir="ltr">{event.date}</span>
           <span className="text-(--color-moss)">·</span>
-          <span>{event.startTime}–{event.endTime}</span>
+          {/* dir=ltr so start time stays on the left of the range — without
+              this, RTL flips the dash-separated time pair and you read end
+              before start. */}
+          <span dir="ltr">{event.startTime}–{event.endTime}</span>
         </div>
       </header>
 

@@ -133,7 +133,8 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
         </p>
 
         <p className="text-(--color-deep) text-sm">
-          📅 {event.date} · {event.startTime}–{event.endTime}
+          📅 <span dir="ltr">{event.date}</span> ·{" "}
+          <span dir="ltr">{event.startTime}–{event.endTime}</span>
         </p>
 
         {event.description.he && (
