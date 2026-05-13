@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   collection,
   doc,
@@ -29,6 +29,10 @@ export function useFavourite(eventId: string | null) {
   const [isFav, setIsFav] = useState(false);
   const [loading, setLoading] = useState(true);
   const uid = auth.currentUser?.uid;
+  // Mirror state for the toggle closure so we always read the latest value
+  // even if the snapshot listener hasn't fired yet between rapid taps.
+  const stateRef = useRef(isFav);
+  stateRef.current = isFav;
 
   useEffect(() => {
     if (!eventId || !uid) {
@@ -41,10 +45,15 @@ export function useFavourite(eventId: string | null) {
     const unsub = onSnapshot(
       ref,
       (snap) => {
-        setIsFav(snap.exists());
+        const exists = snap.exists();
+        setIsFav(exists);
+        stateRef.current = exists;
         setLoading(false);
       },
-      () => setLoading(false)
+      (err) => {
+        console.warn("[favourite] snapshot error", err);
+        setLoading(false);
+      }
     );
     return unsub;
   }, [eventId, uid]);
@@ -53,14 +62,26 @@ export function useFavourite(eventId: string | null) {
     const cur = auth.currentUser;
     if (!cur || !eventId) throw new Error("not signed in");
     const ref = doc(db, "favourites", favId(cur.uid, eventId));
-    if (isFav) {
-      await deleteDoc(ref);
-    } else {
-      await setDoc(ref, {
-        userId: cur.uid,
-        eventId,
-        createdAt: serverTimestamp(),
-      });
+    const wasFav = stateRef.current;
+    // Optimistic UI update so the star flips immediately on every tap;
+    // the snapshot listener will reconcile after the write lands.
+    setIsFav(!wasFav);
+    stateRef.current = !wasFav;
+    try {
+      if (wasFav) {
+        await deleteDoc(ref);
+      } else {
+        await setDoc(ref, {
+          userId: cur.uid,
+          eventId,
+          createdAt: serverTimestamp(),
+        });
+      }
+    } catch (err) {
+      // Revert on failure
+      setIsFav(wasFav);
+      stateRef.current = wasFav;
+      throw err;
     }
   }
 
