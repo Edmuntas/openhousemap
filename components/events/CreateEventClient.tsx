@@ -176,13 +176,50 @@ export default function CreateEventClient() {
 
   async function handlePhotos(files: File[]) {
     if (!files.length) return;
-    setUploading(true);
     setError(null);
+
+    // Client-side validation BEFORE upload so user gets a clear, immediate
+    // message instead of a cryptic Storage permission error.
+    const ALLOWED = new Set([
+      "image/jpeg",
+      "image/png",
+      "image/heic",
+      "image/heif",
+      "image/webp",
+    ]);
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    const rejected: string[] = [];
+    const valid: File[] = [];
+    for (const f of files) {
+      const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+      const isRaw = ["dng", "raw", "cr2", "nef", "arw"].includes(ext);
+      if (isRaw) {
+        rejected.push(`${f.name} — קובץ RAW לא נתמך (העלה JPEG/PNG/HEIC)`);
+        continue;
+      }
+      if (!ALLOWED.has(f.type)) {
+        rejected.push(`${f.name} — פורמט לא נתמך (JPEG / PNG / HEIC / WEBP בלבד)`);
+        continue;
+      }
+      if (f.size > MAX_SIZE) {
+        const mb = (f.size / 1024 / 1024).toFixed(1);
+        rejected.push(`${f.name} — גדול מדי (${mb} MB, מקסימום 10 MB)`);
+        continue;
+      }
+      valid.push(f);
+    }
+
+    if (rejected.length) {
+      setError(`לא ניתן להעלות:\n${rejected.join("\n")}`);
+    }
+    if (!valid.length) return;
+
+    setUploading(true);
     try {
       const slot = Math.max(0, 10 - photos.length);
-      const batch = files.slice(0, slot);
+      const batch = valid.slice(0, slot);
       const stamp = Date.now();
-      // Parallel uploads — was sequential, took 6× longer
+      // Parallel uploads
       const uploaded = await Promise.all(
         batch.map(async (f, i) => {
           const path = `events/${eventId}/photo_${stamp}_${i}_${f.name}`;
@@ -195,7 +232,7 @@ export default function CreateEventClient() {
       setPhotos((prev) => [...prev, ...uploaded].slice(0, 10));
     } catch (e) {
       console.error(e);
-      setError(`Photo upload failed: ${(e as Error).message}`);
+      setError(`שגיאה בהעלאת תמונות: ${(e as Error).message}`);
     } finally {
       setUploading(false);
     }
@@ -628,7 +665,7 @@ export default function CreateEventClient() {
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/jpeg,image/png,image/heic,image/heif,image/webp,.jpg,.jpeg,.png,.heic,.heif,.webp"
                 onChange={(e) => {
                   // Snapshot the FileList into a stable array BEFORE clearing the
                   // input — the FileList is live and gets invalidated when we
@@ -651,7 +688,7 @@ export default function CreateEventClient() {
               </div>
               <div className="text-xs text-(--color-moss) mt-1 pointer-events-none">
                 {photos.length === 0
-                  ? "JPG / PNG · עד 10 תמונות"
+                  ? "JPG / PNG / HEIC · עד 10MB לכל תמונה · עד 10 תמונות"
                   : `${photos.length}/10 תמונות הועלו · לחץ להוספה`}
               </div>
             </label>
@@ -728,7 +765,7 @@ export default function CreateEventClient() {
         </div>
 
         {error && (
-          <p role="alert" className="text-(--vis-red) bg-(--vis-red)/10 p-3 rounded-xl text-sm">
+          <p role="alert" className="text-(--vis-red) bg-(--vis-red)/10 p-3 rounded-xl text-sm whitespace-pre-line">
             {error}
           </p>
         )}

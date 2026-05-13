@@ -11,20 +11,22 @@ service firebase.storage {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    // Event photos — verified realtors upload to their event paths
-    // Path: /events/{eventId}/{filename}
-    // Resize extension generates thumb_/medium_/full_ variants — also publicly readable
+    // Event photos — verified realtors upload to their event paths.
+    // Allow only web-displayable photo formats up to 10MB. Client validates
+    // first and shows a friendly Hebrew message; this rule is the security
+    // backstop.
     function isAllowedPhotoUpload() {
-      // Accept image/* MIME, OR known photo formats by extension (iPhone
-      // ProRAW DNG and HEIC sometimes upload with application/octet-stream
-      // and would otherwise fail image/.* regex).
-      return request.resource.contentType.matches('image/.*')
-        || fileName.matches('.*\\.(jpe?g|JPE?G|png|PNG|heic|HEIC|heif|HEIF|webp|WEBP|dng|DNG)');
+      return (request.resource.contentType == 'image/jpeg'
+        || request.resource.contentType == 'image/png'
+        || request.resource.contentType == 'image/heic'
+        || request.resource.contentType == 'image/heif'
+        || request.resource.contentType == 'image/webp')
+        && !fileName.matches('.*\\.(dng|DNG|raw|RAW|cr2|CR2|nef|NEF|arw|ARW)');
     }
     match /events/{eventId}/{fileName} {
       allow read: if true; // public read for map popups, OG images
       allow write: if (isVerifiedRealtor() || isAdmin())
-        && request.resource.size < 30 * 1024 * 1024 // 30MB — iPhone ProRAW DNG can hit ~25MB
+        && request.resource.size < 10 * 1024 * 1024 // 10MB
         && isAllowedPhotoUpload();
       allow delete: if isVerifiedRealtor() || isAdmin();
     }
