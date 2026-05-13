@@ -1,5 +1,6 @@
 "use client";
 
+import { Navigation2, MessageCircle, CalendarPlus } from "lucide-react";
 import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
 import { buildIcs } from "@/lib/ics";
 import { formatPrice } from "@/lib/utils";
@@ -38,24 +39,27 @@ export default function EventActionsClient({ event }: Props) {
         href={wazeDeepLink(event.address)}
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-(--color-moss) text-(--color-ivory) py-3 px-4 rounded-xl text-center font-medium hover:bg-(--color-forest) transition-colors"
+        className="bg-(--color-moss) text-(--color-ivory) py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-(--color-forest) transition-colors active:scale-[0.97]"
       >
-        🚗 Waze
+        <Navigation2 className="w-4 h-4" />
+        Waze
       </a>
       <a
         href={whatsappShareLink(shareText, eventUrl)}
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-(--color-cream) text-(--color-deep) py-3 px-4 rounded-xl text-center font-medium hover:bg-(--color-sage) transition-colors"
+        className="bg-(--color-cream) text-(--color-deep) py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-(--color-sage) transition-colors active:scale-[0.97]"
       >
-        📤 WhatsApp
+        <MessageCircle className="w-4 h-4" />
+        WhatsApp
       </a>
       <button
         type="button"
         onClick={downloadIcs}
-        className="bg-(--color-gold)/20 text-(--color-deep) py-3 px-4 rounded-xl text-center font-medium hover:bg-(--color-gold)/40 transition-colors"
+        className="bg-(--color-gold)/20 text-(--color-deep) py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-(--color-gold)/40 transition-colors active:scale-[0.97]"
       >
-        📅 הוסף ליומן
+        <CalendarPlus className="w-4 h-4" />
+        הוסף ליומן
       </button>
     </section>
   );

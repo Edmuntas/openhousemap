@@ -11,6 +11,7 @@ import MobileSheet, { type Snap } from "@/components/ui/MobileSheet";
 import { useEvents, type EventWithId } from "@/hooks/useEvents";
 import { useMyFavourites } from "@/hooks/useFavourite";
 import { useAuth } from "@/hooks/useAuth";
+import { UserRound, LogIn } from "lucide-react";
 
 export default function MapHomeClient() {
   const t = useTranslations("app");
@@ -100,7 +101,7 @@ export default function MapHomeClient() {
             aria-label="הפרופיל שלי"
             className="bg-(--surface)/95 backdrop-blur rounded-full w-9 h-9 shadow-md flex items-center justify-center text-(--color-deep) hover:bg-(--color-cream) transition-colors"
           >
-            {user ? "👤" : "↪"}
+            {user ? <UserRound className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
           </Link>
         </div>
 
@@ -134,7 +135,7 @@ export default function MapHomeClient() {
             aria-label="הפרופיל שלי"
             className="shrink-0 w-9 h-9 rounded-full bg-(--color-cream) hover:bg-(--color-sage)/40 flex items-center justify-center text-(--color-deep)"
           >
-            {user ? "👤" : "↪"}
+            {user ? <UserRound className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
           </Link>
         </header>
         <div className="flex-1 overflow-y-auto">{sidebarContent}</div>

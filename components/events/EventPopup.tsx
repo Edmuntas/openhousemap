@@ -6,6 +6,7 @@ import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
 import PhotoGallery from "@/components/ui/PhotoGallery";
 import RsvpButtons from "@/components/events/RsvpButtons";
 import FavouriteButton from "@/components/events/FavouriteButton";
+import { X, Navigation2, MessageCircle, Calendar, ArrowLeft } from "lucide-react";
 import type { EventWithId } from "@/hooks/useEvents";
 
 interface EventPopupProps {
@@ -95,7 +96,7 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
           style={{ touchAction: "manipulation" }}
           className="w-11 h-11 rounded-full bg-(--color-cream) hover:bg-(--color-sage) text-(--color-deep) flex items-center justify-center transition-colors active:scale-95"
         >
-          ✕
+          <X className="w-5 h-5" />
         </button>
       </div>
 
@@ -132,8 +133,10 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
             .join(" · ")}
         </p>
 
-        <p className="text-(--color-deep) text-sm">
-          📅 <span dir="ltr">{event.date}</span> ·{" "}
+        <p className="text-(--color-deep) text-sm inline-flex items-center gap-1.5">
+          <Calendar className="w-4 h-4 text-(--color-moss)" />
+          <span dir="ltr">{event.date}</span>
+          <span className="text-(--color-moss)">·</span>
           <span dir="ltr">{event.startTime}–{event.endTime}</span>
         </p>
 
@@ -156,24 +159,27 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
             href={wazeDeepLink(event.address)}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-(--color-moss) text-(--color-ivory) py-2.5 px-4 rounded-xl text-sm font-medium text-center hover:bg-(--color-forest) transition-colors"
+            className="bg-(--color-moss) text-(--color-ivory) py-2.5 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-(--color-forest) transition-colors"
           >
-            🚗 Waze
+            <Navigation2 className="w-4 h-4" />
+            Waze
           </a>
           <a
             href={whatsappShareLink(shareText, eventUrl)}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-(--color-cream) text-(--color-deep) py-2.5 px-4 rounded-xl text-sm font-medium text-center hover:bg-(--color-sage) transition-colors"
+            className="bg-(--color-cream) text-(--color-deep) py-2.5 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-(--color-sage) transition-colors"
           >
-            📤 WhatsApp
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp
           </a>
         </div>
         <a
           href={`/e/${event.id}`}
-          className="block bg-(--color-deep) text-(--color-ivory) py-2.5 px-4 rounded-xl text-sm font-medium text-center hover:bg-(--color-forest) transition-colors"
+          className="bg-(--color-deep) text-(--color-ivory) py-2.5 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-(--color-forest) transition-colors"
         >
-          פרטים מלאים ←
+          פרטים מלאים
+          <ArrowLeft className="w-4 h-4" />
         </a>
       </div>
 

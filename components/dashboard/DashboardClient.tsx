@@ -9,6 +9,17 @@ import { useMyEvents } from "@/hooks/useMyEvents";
 import { useEvents, type EventWithId } from "@/hooks/useEvents";
 import { useMyRsvps } from "@/hooks/useRsvp";
 import { useMyFavourites } from "@/hooks/useFavourite";
+import {
+  Map as MapIcon,
+  Plus,
+  LogOut,
+  Calendar,
+  Star,
+  Home as HomeIcon,
+  ArrowLeft,
+  Award,
+  CheckCircle2,
+} from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { formatPrice, todayIso } from "@/lib/utils";
 import DashboardEventCard from "./DashboardEventCard";
@@ -82,11 +93,11 @@ export default function DashboardClient() {
   const todaysOwned = ownedActive.filter((e) => e.date === today);
   const upcomingOwned = ownedActive.filter((e) => e.date > today);
 
-  const TABS: { id: Tab; label: string; emoji: string }[] = [
-    { id: "attending", label: "אני אגיע", emoji: "📅" },
-    { id: "favourites", label: "מועדפים", emoji: "★" },
+  const TABS: { id: Tab; label: string; Icon: typeof MapIcon }[] = [
+    { id: "attending", label: "אני אגיע", Icon: Calendar },
+    { id: "favourites", label: "מועדפים", Icon: Star },
     ...(isRealtor
-      ? [{ id: "owned" as const, label: "האירועים שלי", emoji: "🏠" }]
+      ? [{ id: "owned" as const, label: "האירועים שלי", Icon: HomeIcon }]
       : []),
   ];
 
@@ -102,13 +113,13 @@ export default function DashboardClient() {
           </h1>
           <div className="flex items-center gap-2 mt-2">
             {claims?.admin && (
-              <span className="px-2.5 py-1 bg-(--color-gold)/30 rounded-full text-xs font-medium">
-                ⭐ admin
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-(--color-gold)/30 rounded-full text-xs font-medium">
+                <Award className="w-3 h-3" /> admin
               </span>
             )}
             {!claims?.admin && claims?.verified && (
-              <span className="px-2.5 py-1 bg-(--color-sage)/40 rounded-full text-xs font-medium">
-                ✓ verified realtor
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-(--color-sage)/40 rounded-full text-xs font-medium">
+                <CheckCircle2 className="w-3 h-3" /> verified realtor
               </span>
             )}
           </div>
@@ -116,16 +127,18 @@ export default function DashboardClient() {
         <div className="flex gap-2 flex-wrap">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+            className="inline-flex items-center gap-1.5 bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
           >
-            🗺 חזרה למפה
+            <MapIcon className="w-4 h-4" />
+            חזרה למפה
           </Link>
           {isRealtor && (
             <Link
               href="/create"
-              className="inline-flex items-center bg-(--color-moss) text-(--color-ivory) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-forest) transition-colors active:scale-[0.97]"
+              className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-forest) transition-colors active:scale-[0.97]"
             >
-              + Open House חדש
+              <Plus className="w-4 h-4" />
+              Open House חדש
             </Link>
           )}
           <button
@@ -134,8 +147,9 @@ export default function DashboardClient() {
               await signOut(auth);
               router.push("/");
             }}
-            className="bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+            className="inline-flex items-center gap-1.5 bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
           >
+            <LogOut className="w-4 h-4" />
             התנתק
           </button>
         </div>
@@ -151,7 +165,7 @@ export default function DashboardClient() {
           <StatTab
             key={t.id}
             label={t.label}
-            emoji={t.emoji}
+            Icon={t.Icon}
             value={String(
               t.id === "attending"
                 ? attendingUpcoming.length
@@ -401,13 +415,13 @@ function EmptyState({
 
 function StatTab({
   label,
-  emoji,
+  Icon,
   value,
   active,
   onClick,
 }: {
   label: string;
-  emoji: string;
+  Icon: typeof MapIcon;
   value: string;
   active: boolean;
   onClick: () => void;
@@ -432,9 +446,10 @@ function StatTab({
         >
           {value}
         </span>
-        <span aria-hidden className="text-base opacity-80">
-          {emoji}
-        </span>
+        <Icon
+          aria-hidden
+          className={`w-5 h-5 ${active ? "text-(--color-ivory)/80" : "text-(--color-moss)"}`}
+        />
       </div>
       <div
         className={`text-xs mt-2 tracking-wide truncate ${

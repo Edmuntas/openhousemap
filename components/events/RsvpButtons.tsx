@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Check, HelpCircle, X as XIcon } from "lucide-react";
 import { useRsvp, type RsvpStatus } from "@/hooks/useRsvp";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -8,10 +9,14 @@ interface Props {
   eventId: string;
 }
 
-const OPTIONS: { value: RsvpStatus; label: string; emoji: string }[] = [
-  { value: "attending", label: "אגיע", emoji: "✓" },
-  { value: "maybe", label: "אולי", emoji: "?" },
-  { value: "declined", label: "לא", emoji: "✕" },
+const OPTIONS: {
+  value: RsvpStatus;
+  label: string;
+  Icon: typeof Check;
+}[] = [
+  { value: "attending", label: "אגיע", Icon: Check },
+  { value: "maybe", label: "אולי", Icon: HelpCircle },
+  { value: "declined", label: "לא", Icon: XIcon },
 ];
 
 export default function RsvpButtons({ eventId }: Props) {
@@ -56,7 +61,7 @@ export default function RsvpButtons({ eventId }: Props) {
               aria-pressed={active}
               aria-busy={loading}
               style={{ touchAction: "manipulation" }}
-              className={`py-2.5 px-3 rounded-xl text-sm font-medium transition-colors active:scale-95 ${
+              className={`py-2.5 px-3 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-colors active:scale-95 ${
                 active
                   ? opt.value === "attending"
                     ? "bg-(--vis-green) text-white"
@@ -66,9 +71,7 @@ export default function RsvpButtons({ eventId }: Props) {
                   : "bg-(--color-cream) text-(--color-deep) hover:bg-(--color-sage)/30"
               }`}
             >
-              <span aria-hidden className="ml-1">
-                {opt.emoji}
-              </span>
+              <opt.Icon className="w-4 h-4" aria-hidden />
               {opt.label}
             </button>
           );

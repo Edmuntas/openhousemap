@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Star } from "lucide-react";
 import { useFavourite } from "@/hooks/useFavourite";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -44,7 +45,11 @@ export default function FavouriteButton({ eventId, className = "" }: Props) {
           : "bg-(--color-cream) hover:bg-(--color-gold)/40 text-(--color-deep)"
       } ${className}`}
     >
-      <span className="text-lg leading-none">{isFav ? "★" : "☆"}</span>
+      <Star
+        className="w-5 h-5"
+        strokeWidth={2}
+        fill={isFav ? "currentColor" : "none"}
+      />
     </button>
   );
 }

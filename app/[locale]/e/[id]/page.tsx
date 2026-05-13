@@ -4,6 +4,7 @@ import { getEventById } from "@/lib/event-server";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import EventActionsClient from "@/components/events/EventActionsClient";
 import PhotoGallery from "@/components/ui/PhotoGallery";
+import { ArrowRight, Calendar as CalendarIcon } from "lucide-react";
 
 export const revalidate = 60;
 
@@ -64,9 +65,10 @@ export default async function EventDetailPage({
       <div className="flex items-center justify-between gap-3 pt-3">
         <a
           href="/"
-          className="inline-flex items-center gap-1 text-(--color-moss) hover:text-(--color-forest) text-sm font-medium"
+          className="inline-flex items-center gap-1.5 text-(--color-moss) hover:text-(--color-forest) text-sm font-medium"
         >
-          ← חזרה למפה
+          <ArrowRight className="w-4 h-4" />
+          חזרה למפה
         </a>
         <span
           className="text-xs font-medium px-3 py-1.5 rounded-full whitespace-nowrap shadow-sm"
@@ -84,7 +86,7 @@ export default async function EventDetailPage({
           {event.address}
         </p>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--color-cream) text-(--color-deep) text-sm">
-          <span aria-hidden>📅</span>
+          <CalendarIcon className="w-4 h-4 text-(--color-moss)" aria-hidden />
           <span className="font-medium" dir="ltr">{event.date}</span>
           <span className="text-(--color-moss)">·</span>
           {/* dir=ltr so start time stays on the left of the range — without
