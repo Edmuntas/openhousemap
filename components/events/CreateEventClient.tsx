@@ -174,20 +174,24 @@ export default function CreateEventClient() {
 
   const t = form.propertyType;
 
-  async function handlePhotos(files: FileList | null) {
-    if (!files || !files.length) return;
+  async function handlePhotos(files: File[]) {
+    if (!files.length) return;
     setUploading(true);
     setError(null);
     try {
-      const uploaded: UploadedPhoto[] = [];
-      for (let i = 0; i < Math.min(files.length, 10); i++) {
-        const f = files[i];
-        const path = `events/${eventId}/photo_${Date.now()}_${i}_${f.name}`;
-        const r = storageRef(storage, path);
-        await uploadBytes(r, f, { contentType: f.type });
-        const fullUrl = await getDownloadURL(r);
-        uploaded.push({ full: fullUrl, medium: fullUrl, thumb: fullUrl });
-      }
+      const slot = Math.max(0, 10 - photos.length);
+      const batch = files.slice(0, slot);
+      const stamp = Date.now();
+      // Parallel uploads — was sequential, took 6× longer
+      const uploaded = await Promise.all(
+        batch.map(async (f, i) => {
+          const path = `events/${eventId}/photo_${stamp}_${i}_${f.name}`;
+          const r = storageRef(storage, path);
+          await uploadBytes(r, f, { contentType: f.type });
+          const url = await getDownloadURL(r);
+          return { full: url, medium: url, thumb: url };
+        })
+      );
       setPhotos((prev) => [...prev, ...uploaded].slice(0, 10));
     } catch (e) {
       console.error(e);
@@ -608,8 +612,13 @@ export default function CreateEventClient() {
                 multiple
                 accept="image/*"
                 onChange={(e) => {
-                  handlePhotos(e.target.files);
+                  // Snapshot the FileList into a stable array BEFORE clearing the
+                  // input — the FileList is live and gets invalidated when we
+                  // reset input.value, which was causing only the first file to
+                  // upload from a multi-select.
+                  const arr = e.target.files ? Array.from(e.target.files) : [];
                   e.target.value = "";
+                  handlePhotos(arr);
                 }}
                 disabled={uploading || photos.length >= 10}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
