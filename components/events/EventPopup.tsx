@@ -137,7 +137,7 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
         </p>
 
         {event.description.he && (
-          <p className="text-sm text-(--color-deep) leading-relaxed">
+          <p className="text-sm text-(--color-deep) leading-relaxed whitespace-pre-line">
             {event.description.he}
           </p>
         )}
