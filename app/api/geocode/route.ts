@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 interface UnifiedFeature {
   id: string;
@@ -13,13 +14,10 @@ interface UnifiedFeature {
 
 // Server-side geocoding proxy.
 //
-// Query params:
-//   q       — search text (required)
-//   type    — "city" or "address" (optional; default unconstrained)
-//   near    — "lat,lng" bias for ranking address results (optional)
-//   city    — when type=address, post-filter to keep only matches in this city
-//
-// Always returns Mapbox-style { features: [...] }.
+// Pipeline for Israeli addresses (Hebrew query):
+//   - Primary: data.gov.il authoritative street dataset (real Hebrew city/street names)
+//   - Coord resolution: Nominatim reverse with accept-language=he (parallel)
+// Pipeline for Latin queries: Photon (real-estate friendly) + Nominatim fallback.
 const ISRAEL_BBOX = "34.27,29.5,35.9,33.3";
 const CITY_OSM_VALUES = new Set(["city", "town", "village", "suburb"]);
 const CITY_NOMINATIM_TYPES = new Set([
@@ -30,6 +28,8 @@ const CITY_NOMINATIM_TYPES = new Set([
   "suburb",
   "administrative",
 ]);
+const HEBREW_RE = /[֐-׿]/;
+const STREETS_RESOURCE_ID = "9ad3862c-8391-4b2f-84a4-2d4c68625f4b";
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   }
   const type = sp.get("type") as "city" | "address" | null;
   const near = sp.get("near"); // "lat,lng"
-  const city = sp.get("city")?.trim().toLowerCase();
+  const city = sp.get("city")?.trim();
 
   let nearLatLng: { lat: number; lng: number } | null = null;
   if (near) {
@@ -47,17 +47,23 @@ export async function GET(req: NextRequest) {
     if (isFinite(lat) && isFinite(lng)) nearLatLng = { lat, lng };
   }
 
-  const [photonResults, nominatimResults] = await Promise.all([
-    photonGeocode(q, type, nearLatLng).catch(() => [] as UnifiedFeature[]),
-    nominatimGeocode(q, type).catch(() => [] as UnifiedFeature[]),
-  ]);
+  const hebrew = HEBREW_RE.test(q);
+  let features: UnifiedFeature[] = [];
 
-  let features = [...photonResults, ...nominatimResults];
+  if (hebrew && type === "city") {
+    features = await ilCities(q);
+  } else if (hebrew && type === "address" && city) {
+    features = await ilAddresses(q, city);
+  } else {
+    // Latin queries — keep the original Photon+Nominatim pipeline
+    const [photonResults, nominatimResults] = await Promise.all([
+      photonGeocode(q, type, nearLatLng).catch(() => [] as UnifiedFeature[]),
+      nominatimGeocode(q, type).catch(() => [] as UnifiedFeature[]),
+    ]);
+    features = [...photonResults, ...nominatimResults];
+  }
 
-  // For addresses with a "near" bias, sort by proximity but DON'T hard-filter
-  // by city name — Hebrew streets often have prefixes (שדרות, רחוב, דרך) that
-  // change between Photon and Nominatim, and OSM city tag may be missing on
-  // some address features. Trust the geographic distance instead.
+  // For address with near bias, sort by distance and cut faraway
   if (type === "address" && nearLatLng) {
     features = features
       .map((f) => ({
@@ -70,23 +76,20 @@ export async function GET(req: NextRequest) {
           ) *
             80,
       }))
-      .sort((a, b) => b._score - a._score);
+      .sort((a, b) => b._score - a._score)
+      .filter((f) => {
+        const d = Math.sqrt(
+          (f.center[1] - nearLatLng!.lat) ** 2 +
+            (f.center[0] - nearLatLng!.lng) ** 2
+        );
+        return d < 0.4; // ~40km
+      });
+  }
 
-    // Drop anything > ~25km from the city center (rough cutoff for IL towns)
-    features = features.filter((f) => {
-      const d = Math.sqrt(
-        (f.center[1] - nearLatLng!.lat) ** 2 +
-          (f.center[0] - nearLatLng!.lng) ** 2
-      );
-      return d < 0.25; // ~25km in degrees
-    });
-  } else if (type === "address" && city) {
-    features = features.filter((f) => {
-      const ctxCity = f.context.find((c) => c.id.startsWith("place."))?.text;
-      const inPlace = (ctxCity ?? "").toLowerCase();
-      const inName = f.place_name.toLowerCase();
-      return inPlace.includes(city) || inName.includes(city);
-    });
+  // For Hebrew queries, drop any feature whose place_name has no Hebrew —
+  // those are leaked Latin Photon hits that confuse the user.
+  if (hebrew) {
+    features = features.filter((f) => HEBREW_RE.test(f.place_name));
   }
 
   features = dedupeFeatures(features).slice(0, 8);
@@ -111,6 +114,140 @@ function dedupeFeatures(items: UnifiedFeature[]): UnifiedFeature[] {
   return [...seen.values()];
 }
 
+// -------------------- data.gov.il (Israeli streets dataset) --------------------
+
+interface IlStreetRecord {
+  סמל_ישוב: number;
+  שם_ישוב: string;
+  סמל_רחוב: number;
+  שם_רחוב: string;
+}
+
+async function ilCities(q: string): Promise<UnifiedFeature[]> {
+  const url =
+    `https://data.gov.il/api/3/action/datastore_search` +
+    `?resource_id=${STREETS_RESOURCE_ID}&q=${encodeURIComponent(q)}&limit=50`;
+  const resp = await fetch(url, { next: { revalidate: 86400 } });
+  if (!resp.ok) return [];
+  const data = (await resp.json()) as {
+    result?: { records?: IlStreetRecord[] };
+  };
+  const records = data.result?.records ?? [];
+  // Extract unique city names matching the query
+  const seen = new Set<string>();
+  const cities: string[] = [];
+  for (const r of records) {
+    const name = r.שם_ישוב?.trim();
+    if (!name) continue;
+    if (!name.includes(q.trim())) continue;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    cities.push(name);
+    if (cities.length >= 8) break;
+  }
+  // Resolve coords via Nominatim (parallel)
+  const results = await Promise.all(
+    cities.map((name, i) => resolveCityCoords(name, 95 - i))
+  );
+  return results.filter((x): x is UnifiedFeature => x !== null);
+}
+
+async function ilAddresses(
+  q: string,
+  city: string
+): Promise<UnifiedFeature[]> {
+  // Extract street part of query (before any number)
+  const m = q.match(/^([^\d]+?)\s*(\d+)?$/);
+  const streetQuery = (m?.[1] ?? q).trim();
+  const houseNumber = m?.[2];
+
+  // First, find matching streets in this city
+  const url =
+    `https://data.gov.il/api/3/action/datastore_search` +
+    `?resource_id=${STREETS_RESOURCE_ID}` +
+    `&q=${encodeURIComponent(streetQuery)}` +
+    `&limit=100`;
+  const resp = await fetch(url, { next: { revalidate: 86400 } });
+  if (!resp.ok) return [];
+  const data = (await resp.json()) as {
+    result?: { records?: IlStreetRecord[] };
+  };
+  const records = data.result?.records ?? [];
+
+  // Filter by selected city (case+space insensitive)
+  const cityNorm = city.replace(/\s+/g, "").trim();
+  const inCity = records.filter(
+    (r) => r.שם_ישוב.replace(/\s+/g, "").trim() === cityNorm
+  );
+
+  // Score by matching street name to query
+  const qNorm = streetQuery.trim();
+  inCity.sort((a, b) => {
+    const aStarts = a.שם_רחוב.startsWith(qNorm) ? 1 : 0;
+    const bStarts = b.שם_רחוב.startsWith(qNorm) ? 1 : 0;
+    return bStarts - aStarts;
+  });
+
+  const top = inCity.slice(0, 8);
+  const cityClean = city.trim();
+  const results = await Promise.all(
+    top.map(async (r, i) => {
+      const street = r.שם_רחוב.trim();
+      const display = houseNumber
+        ? `${street} ${houseNumber}, ${cityClean}`
+        : `${street}, ${cityClean}`;
+      const search = houseNumber
+        ? `${street} ${houseNumber} ${cityClean}`
+        : `${street} ${cityClean}`;
+      const coords = await resolveCoords(search);
+      if (!coords) return null;
+      return {
+        id: `il-street.${r.סמל_ישוב}.${r.סמל_רחוב}.${houseNumber ?? ""}`,
+        place_name: display,
+        text: street,
+        center: coords,
+        context: [{ id: "place.city", text: cityClean }],
+        _score: 90 - i,
+      } as UnifiedFeature;
+    })
+  );
+  return results.filter((x): x is UnifiedFeature => x !== null);
+}
+
+async function resolveCityCoords(
+  name: string,
+  score: number
+): Promise<UnifiedFeature | null> {
+  const coords = await resolveCoords(`${name}, ישראל`);
+  if (!coords) return null;
+  return {
+    id: `il-city.${name}`,
+    place_name: name,
+    text: name,
+    center: coords,
+    context: [],
+    _score: score,
+  };
+}
+
+async function resolveCoords(query: string): Promise<[number, number] | null> {
+  const url =
+    `https://nominatim.openstreetmap.org/search?` +
+    `q=${encodeURIComponent(query)}&countrycodes=il&format=json&limit=1&accept-language=he`;
+  const resp = await fetch(url, {
+    headers: {
+      "User-Agent": "OpenHouseMap/1.0 (https://openhousemap.online)",
+    },
+    next: { revalidate: 604800 }, // 1 week — addresses are stable
+  });
+  if (!resp.ok) return null;
+  const data = (await resp.json()) as { lon: string; lat: string }[];
+  if (!data[0]) return null;
+  return [Number(data[0].lon), Number(data[0].lat)];
+}
+
+// -------------------- Photon (Latin queries) --------------------
+
 interface PhotonResponse {
   features: {
     geometry: { coordinates: [number, number] };
@@ -134,9 +271,8 @@ async function photonGeocode(
   type: "city" | "address" | null,
   near: { lat: number; lng: number } | null
 ): Promise<UnifiedFeature[]> {
-  const langs = /[֐-׿]/.test(q) ? ["he", "en"] : ["en", "he"];
+  const langs = HEBREW_RE.test(q) ? ["he", "en"] : ["en", "he"];
   const all: UnifiedFeature[] = [];
-
   const cityTags =
     "&osm_tag=place:city&osm_tag=place:town&osm_tag=place:village";
 
@@ -158,15 +294,20 @@ async function photonGeocode(
       const street = p.street ?? "";
       const num = p.housenumber ?? "";
       const cityName = p.city ?? p.name ?? "";
-      const parts =
+      // Short place_name — no district/state/postcode/country noise
+      const placeName =
         type === "city"
-          ? [p.name]
-          : [p.name, [street, num].filter(Boolean).join(" "), cityName];
-      const placeName = [...new Set(parts.filter(Boolean))].join(", ");
+          ? p.name ?? cityName
+          : [
+              [street, num].filter(Boolean).join(" "),
+              cityName,
+            ]
+              .filter(Boolean)
+              .join(", ") || p.name || "";
       if (!placeName) continue;
 
       const isAddress = !!(street || num);
-      const isHebrew = /[֐-׿]/.test(placeName);
+      const isHebrew = HEBREW_RE.test(placeName);
       all.push({
         id: `photon.${p.osm_id}.${lang}`,
         place_name: placeName,
@@ -210,9 +351,6 @@ async function nominatimGeocode(
   q: string,
   type: "city" | "address" | null
 ): Promise<UnifiedFeature[]> {
-  // Don't pass &featuretype=city — it restricts to OSM admin boundaries with
-  // class=city which excludes most Israeli towns (Zikhron Yaakov, etc.).
-  // Filter on our side instead.
   const url =
     `https://nominatim.openstreetmap.org/search?` +
     `q=${encodeURIComponent(q)}&countrycodes=il&format=json&addressdetails=1&limit=10&accept-language=he,en`;
@@ -229,10 +367,8 @@ async function nominatimGeocode(
       const a = r.address ?? {};
       const cityName =
         a.city ?? a.town ?? a.village ?? a.municipality ?? r.name ?? "";
-      const isAddress = !!(a.road || a.house_number);
 
       if (type === "city") {
-        // Keep only place-class hits; prefer place over boundary duplicates.
         const cls = r.class ?? "";
         const ty = r.type ?? "";
         const isPlaceLike =
@@ -242,18 +378,29 @@ async function nominatimGeocode(
         if (!cityName) return null;
       }
 
+      // Short, clean place_name — street + number + city, no district/postcode
+      const street = a.road ?? "";
+      const num = a.house_number ?? "";
+      const shortAddress = [
+        [street, num].filter(Boolean).join(" "),
+        cityName,
+      ]
+        .filter(Boolean)
+        .join(", ") || r.name || cityName;
+      const placeName = type === "city" ? cityName : shortAddress;
+      if (!placeName) return null;
+
       const context: { id: string; text: string }[] = [];
       if (cityName) context.push({ id: "place.city", text: cityName });
       if (a.country) context.push({ id: "country.il", text: a.country });
 
-      // Score hebrew display names higher (Nominatim returns hebrew text
-      // when accept-language=he and the OSM feature has a name:he tag).
-      const isHebrew = /[֐-׿]/.test(r.display_name);
+      const isHebrew = HEBREW_RE.test(placeName);
       const heBonus = isHebrew ? 20 : 0;
+      const isAddress = !!(street || num);
 
       return {
         id: `nominatim.${r.place_id}`,
-        place_name: type === "city" ? cityName : r.display_name,
+        place_name: placeName,
         text: r.name ?? a.road ?? cityName,
         center: [Number(r.lon), Number(r.lat)] as [number, number],
         context,
