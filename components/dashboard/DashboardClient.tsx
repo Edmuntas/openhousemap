@@ -92,24 +92,26 @@ export default function DashboardClient() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <header className="flex justify-between items-center gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-[var(--font-display)] text-(--color-deep)">
-            האזור האישי
+      <header className="flex justify-between items-end gap-4 flex-wrap">
+        <div className="space-y-1">
+          <p className="text-xs text-(--color-moss) tracking-wide uppercase">
+            שלום
+          </p>
+          <h1 className="text-4xl font-[var(--font-display)] font-semibold text-(--color-deep) leading-none">
+            {user.displayName ?? user.email?.split("@")[0]}
           </h1>
-          <p className="text-sm text-(--color-moss)">
-            {user.displayName ?? user.email}
+          <div className="flex items-center gap-2 mt-2">
             {claims?.admin && (
-              <span className="ml-2 px-2 py-0.5 bg-(--color-gold)/30 rounded text-xs">
-                admin
+              <span className="px-2.5 py-1 bg-(--color-gold)/30 rounded-full text-xs font-medium">
+                ⭐ admin
               </span>
             )}
             {!claims?.admin && claims?.verified && (
-              <span className="ml-2 px-2 py-0.5 bg-(--color-sage)/40 rounded text-xs">
-                verified
+              <span className="px-2.5 py-1 bg-(--color-sage)/40 rounded-full text-xs font-medium">
+                ✓ verified realtor
               </span>
             )}
-          </p>
+          </div>
         </div>
         <div className="flex gap-2">
           {isRealtor && (
@@ -388,7 +390,7 @@ function EmptyState({
   cta: { href: string; label: string };
 }) {
   return (
-    <div className="text-center py-12 space-y-3">
+    <div className="text-center py-16 space-y-4 bg-gradient-to-b from-transparent to-(--color-cream)/40 rounded-3xl">
       <div className="text-5xl">{emoji}</div>
       <p className="text-(--color-moss)">{text}</p>
       <Link
@@ -403,11 +405,13 @@ function EmptyState({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-(--color-cream) rounded-xl p-4">
-      <div className="text-3xl font-[var(--font-display)] text-(--color-deep)">
+    <div className="bg-(--color-cream)/70 rounded-2xl p-4 ring-1 ring-(--color-moss)/10">
+      <div className="text-3xl font-[var(--font-display)] font-semibold text-(--color-deep) leading-none">
         {value}
       </div>
-      <div className="text-xs text-(--color-moss)">{label}</div>
+      <div className="text-xs text-(--color-moss) mt-1.5 tracking-wide">
+        {label}
+      </div>
     </div>
   );
 }

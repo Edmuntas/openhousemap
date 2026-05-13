@@ -66,22 +66,29 @@ export default async function EventDetailPage({
         ← חזרה למפה
       </a>
 
-      <header className="space-y-2">
-        <div className="flex items-baseline justify-between gap-3 flex-wrap">
-          <h1 className="text-4xl font-[var(--font-display)] text-(--color-deep)">
-            {formatPriceFull(event.price)}
-          </h1>
+      <header className="space-y-3">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-5xl font-[var(--font-display)] font-bold text-(--color-deep) leading-none tracking-tight">
+              {formatPriceFull(event.price)}
+            </h1>
+            <p className="text-xl text-(--color-deep) mt-2 font-medium">
+              {event.address}
+            </p>
+          </div>
           <span
-            className="text-sm font-medium px-3 py-1 rounded-full"
+            className="text-sm font-medium px-3 py-1.5 rounded-full whitespace-nowrap shadow-sm"
             style={{ background: `${vis.color}22`, color: vis.color }}
           >
             {vis.label}
           </span>
         </div>
-        <p className="text-xl text-(--color-deep)">{event.address}</p>
-        <p className="text-(--color-moss)">
-          📅 {event.date} · {event.startTime}–{event.endTime}
-        </p>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--color-cream) text-(--color-deep) text-sm">
+          <span aria-hidden>📅</span>
+          <span className="font-medium">{event.date}</span>
+          <span className="text-(--color-moss)">·</span>
+          <span>{event.startTime}–{event.endTime}</span>
+        </div>
       </header>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
@@ -107,8 +114,8 @@ export default async function EventDetailPage({
       <PhotoGallery photos={event.photos} alt={event.address} aspect="video" />
 
       {event.description.he && (
-        <section className="bg-(--color-cream) rounded-xl p-5">
-          <h2 className="text-lg font-[var(--font-display)] mb-2 text-(--color-deep)">
+        <section className="relative bg-gradient-to-br from-(--color-cream) to-(--color-cream)/60 rounded-2xl p-6 ring-1 ring-(--color-moss)/10">
+          <h2 className="text-base font-[var(--font-display)] font-semibold mb-3 text-(--color-moss) tracking-wide uppercase">
             תיאור
           </h2>
           <p className="text-(--color-deep) leading-relaxed whitespace-pre-line">
@@ -117,11 +124,11 @@ export default async function EventDetailPage({
         </section>
       )}
 
-      <section className="border-t border-(--color-cream) pt-4 text-sm text-(--color-moss) space-y-1">
-        <p>
+      <section className="border-t border-(--color-cream) pt-5 text-sm text-(--color-deep) space-y-1">
+        <p className="font-medium">
           {event.realtorSnapshot.name} {event.realtorSnapshot.surname}
         </p>
-        <p>
+        <p className="text-(--color-moss)">
           {event.realtorSnapshot.officeName} · רישיון{" "}
           {event.realtorSnapshot.licenseNumber}
         </p>
@@ -134,11 +141,13 @@ export default async function EventDetailPage({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-(--color-cream) rounded-xl p-3">
-      <div className="text-2xl font-[var(--font-display)] text-(--color-deep)">
+    <div className="bg-(--color-cream)/70 backdrop-blur rounded-2xl p-3.5 ring-1 ring-(--color-moss)/10 hover:ring-(--color-moss)/25 transition-shadow">
+      <div className="text-3xl font-[var(--font-display)] font-semibold text-(--color-deep) leading-none">
         {value}
       </div>
-      <div className="text-xs text-(--color-moss)">{label}</div>
+      <div className="text-xs text-(--color-moss) mt-1.5 tracking-wide">
+        {label}
+      </div>
     </div>
   );
 }
