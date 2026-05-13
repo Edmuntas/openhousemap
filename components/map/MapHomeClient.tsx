@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import MapContainer from "./MapContainer";
 import EventList from "@/components/events/EventList";
@@ -9,6 +10,7 @@ import EventPopup from "@/components/events/EventPopup";
 import MobileSheet, { type Snap } from "@/components/ui/MobileSheet";
 import { useEvents, type EventWithId } from "@/hooks/useEvents";
 import { useMyFavourites } from "@/hooks/useFavourite";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function MapHomeClient() {
   const t = useTranslations("app");
@@ -24,6 +26,7 @@ export default function MapHomeClient() {
   const { events, loading } = useEvents();
   const { eventIds: favouriteIds } = useMyFavourites();
   const favSet = useMemo(() => new Set(favouriteIds), [favouriteIds]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -85,16 +88,20 @@ export default function MapHomeClient() {
           />
         </div>
 
-        {/* Floating brand chip at top, respects Dynamic Island */}
-        <div
-          className="absolute top-0 inset-x-0 pl-safe pr-safe pt-safe z-[1200] pointer-events-none"
-          aria-hidden
-        >
-          <div className="mx-auto w-fit bg-(--surface)/95 backdrop-blur rounded-full px-4 py-1.5 shadow-md pointer-events-auto">
+        {/* Floating brand chip + profile shortcut at top, respects Dynamic Island */}
+        <div className="absolute top-0 inset-x-0 pl-safe pr-safe pt-safe z-[1200] flex justify-center items-center gap-2 px-3">
+          <div className="bg-(--surface)/95 backdrop-blur rounded-full px-4 py-1.5 shadow-md">
             <h1 className="text-sm font-[var(--font-display)] text-(--color-deep) leading-tight">
               {t("name")}
             </h1>
           </div>
+          <Link
+            href={user ? "/dashboard" : "/login?next=/dashboard"}
+            aria-label="הפרופיל שלי"
+            className="bg-(--surface)/95 backdrop-blur rounded-full w-9 h-9 shadow-md flex items-center justify-center text-(--color-deep) hover:bg-(--color-cream) transition-colors"
+          >
+            {user ? "👤" : "↪"}
+          </Link>
         </div>
 
         <MobileSheet
@@ -115,11 +122,20 @@ export default function MapHomeClient() {
   return (
     <main className="flex flex-row h-svh-safe overflow-hidden pl-safe pr-safe">
       <aside className="w-[380px] flex-shrink-0 bg-(--surface) border-l border-(--color-cream) flex flex-col overflow-hidden order-2">
-        <header className="px-4 pt-3 pb-3 border-b border-(--color-cream)">
-          <h1 className="text-2xl font-[var(--font-display)] text-(--color-deep)">
-            {t("name")}
-          </h1>
-          <p className="text-xs text-(--color-moss)">{t("tagline")}</p>
+        <header className="px-4 pt-3 pb-3 border-b border-(--color-cream) flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-[var(--font-display)] text-(--color-deep)">
+              {t("name")}
+            </h1>
+            <p className="text-xs text-(--color-moss)">{t("tagline")}</p>
+          </div>
+          <Link
+            href={user ? "/dashboard" : "/login?next=/dashboard"}
+            aria-label="הפרופיל שלי"
+            className="shrink-0 w-9 h-9 rounded-full bg-(--color-cream) hover:bg-(--color-sage)/40 flex items-center justify-center text-(--color-deep)"
+          >
+            {user ? "👤" : "↪"}
+          </Link>
         </header>
         <div className="flex-1 overflow-y-auto">{sidebarContent}</div>
       </aside>

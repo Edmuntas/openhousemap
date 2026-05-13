@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   collection,
   doc,
@@ -35,18 +35,20 @@ function rsvpId(eventId: string, realtorId: string): string {
   return `${eventId}__${realtorId}`;
 }
 
-/**
- * Subscribe to the current user's RSVP for a given event.
- * Returns current status and a setStatus mutator.
- */
+/** Subscribe to the current user's RSVP for a given event. */
 export function useRsvp(eventId: string | null) {
   const [status, setStatus] = useState<RsvpStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const uid = auth.currentUser?.uid;
+  // Mirror latest status for the update() closure — avoids stale state
+  // between rapid taps where the snapshot hasn't fired yet.
+  const stateRef = useRef<RsvpStatus | null>(null);
+  stateRef.current = status;
 
   useEffect(() => {
     if (!eventId || !uid) {
       setStatus(null);
+      stateRef.current = null;
       setLoading(false);
       return;
     }
@@ -55,11 +57,15 @@ export function useRsvp(eventId: string | null) {
     const unsub = onSnapshot(
       ref,
       (snap) => {
-        if (snap.exists()) setStatus((snap.data() as RsvpDoc).status);
-        else setStatus(null);
+        const v = snap.exists() ? (snap.data() as RsvpDoc).status : null;
+        setStatus(v);
+        stateRef.current = v;
         setLoading(false);
       },
-      () => setLoading(false)
+      (err) => {
+        console.warn("[rsvp] snapshot error", err);
+        setLoading(false);
+      }
     );
     return unsub;
   }, [eventId, uid]);
@@ -68,37 +74,46 @@ export function useRsvp(eventId: string | null) {
     const cur = auth.currentUser;
     if (!cur || !eventId) throw new Error("not signed in");
     const ref = doc(db, "rsvp", rsvpId(eventId, cur.uid));
-    if (next === null) {
-      await deleteDoc(ref);
-      return;
-    }
-    const userDoc = await getDoc(doc(db, "users", cur.uid));
-    const u = userDoc.exists() ? userDoc.data() : {};
-    await setDoc(
-      ref,
-      {
-        eventId,
-        realtorId: cur.uid,
-        status: next,
-        realtorSnapshot: {
-          name: u.name ?? "",
-          surname: u.surname ?? "",
-          officeName: u.officeName ?? "",
-          licenseNumber: u.licenseNumber ?? "",
+    const wasStatus = stateRef.current;
+    // Optimistic flip so the button reacts instantly on every tap.
+    setStatus(next);
+    stateRef.current = next;
+    try {
+      if (next === null) {
+        await deleteDoc(ref);
+        return;
+      }
+      const userDoc = await getDoc(doc(db, "users", cur.uid));
+      const u = userDoc.exists() ? userDoc.data() : {};
+      await setDoc(
+        ref,
+        {
+          eventId,
+          realtorId: cur.uid,
+          status: next,
+          realtorSnapshot: {
+            name: u.name ?? "",
+            surname: u.surname ?? "",
+            officeName: u.officeName ?? "",
+            licenseNumber: u.licenseNumber ?? "",
+          },
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
         },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
+        { merge: true }
+      );
+    } catch (err) {
+      // Revert
+      setStatus(wasStatus);
+      stateRef.current = wasStatus;
+      throw err;
+    }
   }
 
   return { status, loading, update };
 }
 
-/**
- * Subscribe to all RSVPs for an event (intended for the event owner).
- */
+/** Subscribe to all RSVPs for an event (intended for the event owner). */
 export function useEventRsvps(eventId: string | null) {
   const [items, setItems] = useState<(RsvpDoc & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,6 +138,36 @@ export function useEventRsvps(eventId: string | null) {
     );
     return unsub;
   }, [eventId]);
+
+  return { items, loading };
+}
+
+/** Subscribe to all RSVPs the current user has created. */
+export function useMyRsvps() {
+  const [items, setItems] = useState<(RsvpDoc & { id: string })[]>([]);
+  const [loading, setLoading] = useState(true);
+  const uid = auth.currentUser?.uid;
+
+  useEffect(() => {
+    if (!uid) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const q = query(collection(db, "rsvp"), where("realtorId", "==", uid));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setItems(
+          snap.docs.map((d) => ({ id: d.id, ...(d.data() as RsvpDoc) }))
+        );
+        setLoading(false);
+      },
+      () => setLoading(false)
+    );
+    return unsub;
+  }, [uid]);
 
   return { items, loading };
 }

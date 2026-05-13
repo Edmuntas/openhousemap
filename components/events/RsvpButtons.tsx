@@ -49,10 +49,14 @@ export default function RsvpButtons({ eventId }: Props) {
             <button
               key={opt.value}
               type="button"
-              onClick={() => pick(opt.value)}
-              disabled={loading}
+              onClick={(e) => {
+                e.stopPropagation();
+                pick(opt.value);
+              }}
               aria-pressed={active}
-              className={`py-2.5 px-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 ${
+              aria-busy={loading}
+              style={{ touchAction: "manipulation" }}
+              className={`py-2.5 px-3 rounded-xl text-sm font-medium transition-colors active:scale-95 ${
                 active
                   ? opt.value === "attending"
                     ? "bg-(--vis-green) text-white"
