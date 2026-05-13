@@ -135,40 +135,29 @@ export default function DashboardClient() {
         </div>
       </header>
 
-      <section className="grid grid-cols-3 gap-3 text-center">
-        <Stat label="קרובים שאגיע" value={String(attendingUpcoming.length)} />
-        <Stat label="מועדפים" value={String(favIds.length)} />
-        {isRealtor ? (
-          <Stat
-            label="האירועים שלי"
-            value={String(ownedActive.length + ownedArchived.length)}
-          />
-        ) : (
-          <Stat label="היום" value={String(attendingUpcoming.filter((a) => a.event.date === today).length)} />
-        )}
-      </section>
-
-      <nav className="flex border-b border-(--color-cream)">
+      {/* Stat cards double as tabs — tap a card to switch the panel below.
+          Active card gets the moss outline; counter doubles as both summary
+          and affordance. */}
+      <section
+        className={`grid gap-3 ${TABS.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}
+      >
         {TABS.map((t) => (
-          <button
+          <StatTab
             key={t.id}
-            type="button"
+            label={t.label}
+            emoji={t.emoji}
+            value={String(
+              t.id === "attending"
+                ? attendingUpcoming.length
+                : t.id === "favourites"
+                ? favIds.length
+                : ownedActive.length + ownedArchived.length
+            )}
+            active={tab === t.id}
             onClick={() => setTab(t.id)}
-            aria-pressed={tab === t.id}
-            style={{ touchAction: "manipulation" }}
-            className={`flex-1 min-w-0 px-2 py-3 -mb-px border-b-2 transition-colors text-sm active:scale-[0.97] ${
-              tab === t.id
-                ? "border-(--color-moss) text-(--color-deep) font-medium"
-                : "border-transparent text-(--color-moss) hover:text-(--color-deep)"
-            }`}
-          >
-            <span aria-hidden className="ml-1">
-              {t.emoji}
-            </span>
-            <span className="truncate">{t.label}</span>
-          </button>
+          />
         ))}
-      </nav>
+      </section>
 
       <section>
         {tab === "attending" && (
@@ -404,15 +393,50 @@ function EmptyState({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function StatTab({
+  label,
+  emoji,
+  value,
+  active,
+  onClick,
+}: {
+  label: string;
+  emoji: string;
+  value: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
-    <div className="bg-(--color-cream)/70 rounded-2xl p-4 ring-1 ring-(--color-moss)/10">
-      <div className="text-3xl font-[var(--font-display)] font-semibold text-(--color-deep) leading-none">
-        {value}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      style={{ touchAction: "manipulation" }}
+      className={`text-right rounded-2xl p-4 transition-all active:scale-[0.97] ${
+        active
+          ? "bg-(--color-moss) text-(--color-ivory) ring-2 ring-(--color-moss) shadow-md"
+          : "bg-(--color-cream)/70 text-(--color-deep) ring-1 ring-(--color-moss)/10 hover:ring-(--color-moss)/30"
+      }`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <span
+          className={`text-3xl font-[var(--font-display)] font-semibold leading-none ${
+            active ? "text-(--color-ivory)" : "text-(--color-deep)"
+          }`}
+        >
+          {value}
+        </span>
+        <span aria-hidden className="text-base opacity-80">
+          {emoji}
+        </span>
       </div>
-      <div className="text-xs text-(--color-moss) mt-1.5 tracking-wide">
+      <div
+        className={`text-xs mt-2 tracking-wide truncate ${
+          active ? "text-(--color-ivory)/85" : "text-(--color-moss)"
+        }`}
+      >
         {label}
       </div>
-    </div>
+    </button>
   );
 }
