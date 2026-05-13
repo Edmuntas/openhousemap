@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import IL_CITIES from "@/data/il-cities.json";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -124,6 +125,25 @@ interface IlStreetRecord {
 }
 
 async function ilCities(q: string): Promise<UnifiedFeature[]> {
+  const query = q.trim();
+  if (!query) return [];
+
+  // Primary source: local curated list of major Israeli cities.
+  // data.gov.il's hebrew full-text search misses prefixes (q="חדר" doesn't
+  // surface "חדרה" because tokens are whole-word). Local prefix match
+  // works instantly and reliably for the ~150 major municipalities.
+  const localMatches: { name: string }[] = (
+    IL_CITIES as { name: string }[]
+  ).filter((c) => c.name.startsWith(query) || c.name.includes(query));
+
+  if (localMatches.length > 0) {
+    const results = await Promise.all(
+      localMatches.slice(0, 8).map((c, i) => resolveCityCoords(c.name, 100 - i))
+    );
+    return results.filter((x): x is UnifiedFeature => x !== null);
+  }
+
+  // Fallback: data.gov.il dataset (for small settlements not in local list)
   const url =
     `https://data.gov.il/api/3/action/datastore_search` +
     `?resource_id=${STREETS_RESOURCE_ID}&q=${encodeURIComponent(q)}&limit=50`;
@@ -133,7 +153,6 @@ async function ilCities(q: string): Promise<UnifiedFeature[]> {
     result?: { records?: IlStreetRecord[] };
   };
   const records = data.result?.records ?? [];
-  // Extract unique city names matching the query
   const seen = new Set<string>();
   const cities: string[] = [];
   for (const r of records) {
