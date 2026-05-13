@@ -148,26 +148,15 @@ export default function MapHomeClient() {
   return (
     <main className="flex flex-row h-svh-safe overflow-hidden">
       <aside className="w-[380px] flex-shrink-0 bg-(--surface) border-l border-(--color-cream) flex flex-col overflow-hidden">
-        <header className="px-4 pt-3 pb-3 border-b border-(--color-cream) flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight truncate">
+        {/* Title row: brand on its OWN line so it never collides with action
+            chrome. Profile pill stays inline on the right (visual left in
+            RTL) — small enough to not crowd a long title. Tagline + create
+            CTA stack underneath. */}
+        <header className="px-4 pt-3 pb-3 border-b border-(--color-cream) space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight leading-tight">
               {t("name")}
             </h1>
-            <p className="text-xs text-(--color-moss) font-medium truncate">
-              {t("tagline")}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {isRealtor && (
-              <Link
-                href="/create"
-                aria-label="פרסם בית פתוח חדש"
-                className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 text-sm font-medium hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Open House
-              </Link>
-            )}
             <Link
               href={user ? "/dashboard" : "/login?next=/dashboard"}
               aria-label="הפרופיל שלי"
@@ -180,6 +169,19 @@ export default function MapHomeClient() {
               {user ? <UserRound className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
             </Link>
           </div>
+          <p className="text-xs text-(--color-moss) font-medium">
+            {t("tagline")}
+          </p>
+          {isRealtor && (
+            <Link
+              href="/create"
+              aria-label="פרסם בית פתוח חדש"
+              className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 text-sm font-medium hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              Open House
+            </Link>
+          )}
         </header>
         <div className="flex-1 overflow-y-auto">{sidebarContent}</div>
       </aside>
