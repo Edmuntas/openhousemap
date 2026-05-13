@@ -258,6 +258,9 @@ export default function CreateEventClient() {
       if (!auth.currentUser) {
         throw new Error("ההתחברות פגה — היכנס שוב והגש מחדש");
       }
+      if (uploading) {
+        throw new Error("חכה לסיום העלאת התמונות ונסה שוב");
+      }
       if (!form.address.address) {
         throw new Error("הזן כתובת");
       }
@@ -393,7 +396,7 @@ export default function CreateEventClient() {
         צור Open House חדש
       </h1>
 
-      <form onSubmit={submit} className="space-y-5">
+      <form onSubmit={submit} noValidate className="space-y-5">
         <Field label="סוג נכס">
           <div className="flex flex-wrap gap-2">
             {PROPERTY_TYPE_ORDER.map((pt) => (
@@ -732,10 +735,15 @@ export default function CreateEventClient() {
 
         <button
           type="submit"
-          disabled={submitting || uploading}
-          className="w-full bg-(--color-deep) text-(--color-ivory) py-3.5 rounded-xl font-medium hover:bg-(--color-forest) disabled:opacity-50 transition-colors"
+          disabled={submitting}
+          aria-busy={submitting || uploading}
+          className="w-full bg-(--color-deep) text-(--color-ivory) py-3.5 rounded-xl font-medium hover:bg-(--color-forest) disabled:opacity-50 transition-colors active:scale-[0.98]"
         >
-          {submitting ? "שומר..." : "פרסם Open House"}
+          {submitting
+            ? "שומר..."
+            : uploading
+            ? "ממתין לתמונות... (אפשר להמשיך)"
+            : "פרסם Open House"}
         </button>
       </form>
 
