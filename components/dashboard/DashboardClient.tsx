@@ -95,7 +95,7 @@ export default function DashboardClient() {
       <header className="flex justify-between items-center gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-[var(--font-display)] text-(--color-deep)">
-            לוח הבקרה
+            האזור האישי
           </h1>
           <p className="text-sm text-(--color-moss)">
             {user.displayName ?? user.email}
@@ -146,20 +146,24 @@ export default function DashboardClient() {
         )}
       </section>
 
-      <nav className="flex gap-2 border-b border-(--color-cream) overflow-x-auto">
+      <nav className="flex border-b border-(--color-cream)">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2 -mb-px border-b-2 transition-colors whitespace-nowrap ${
+            aria-pressed={tab === t.id}
+            style={{ touchAction: "manipulation" }}
+            className={`flex-1 min-w-0 px-2 py-3 -mb-px border-b-2 transition-colors text-sm active:scale-[0.97] ${
               tab === t.id
                 ? "border-(--color-moss) text-(--color-deep) font-medium"
                 : "border-transparent text-(--color-moss) hover:text-(--color-deep)"
             }`}
           >
-            <span className="ml-1">{t.emoji}</span>
-            {t.label}
+            <span aria-hidden className="ml-1">
+              {t.emoji}
+            </span>
+            <span className="truncate">{t.label}</span>
           </button>
         ))}
       </nav>
