@@ -5,6 +5,7 @@ import { formatPrice, formatPriceFull } from "@/lib/utils";
 import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
 import PhotoGallery from "@/components/ui/PhotoGallery";
 import RsvpButtons from "@/components/events/RsvpButtons";
+import FavouriteButton from "@/components/events/FavouriteButton";
 import type { EventWithId } from "@/hooks/useEvents";
 
 interface EventPopupProps {
@@ -82,14 +83,17 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
           <span className="w-12 h-1.5 rounded-full bg-(--color-moss)/40" />
         </div>
       )}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="סגור"
-        className="absolute top-3 right-3 rtl:right-auto rtl:left-3 w-9 h-9 rounded-full bg-(--color-cream) hover:bg-(--color-sage) text-(--color-deep) flex items-center justify-center transition-colors z-10"
-      >
-        ✕
-      </button>
+      <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3 flex items-center gap-2 z-10">
+        <FavouriteButton eventId={event.id} />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="סגור"
+          className="w-9 h-9 rounded-full bg-(--color-cream) hover:bg-(--color-sage) text-(--color-deep) flex items-center justify-center transition-colors"
+        >
+          ✕
+        </button>
+      </div>
 
       <PhotoGallery photos={event.photos} alt={event.address} aspect="video" />
 

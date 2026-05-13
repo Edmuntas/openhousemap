@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRsvp, type RsvpStatus } from "@/hooks/useRsvp";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -14,16 +15,24 @@ const OPTIONS: { value: RsvpStatus; label: string; emoji: string }[] = [
 ];
 
 export default function RsvpButtons({ eventId }: Props) {
-  const { user, claims, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const { user, claims } = useAuth();
   const { status, loading, update } = useRsvp(eventId);
 
-  // Only show for verified realtors / admins
-  const isEligible = !!user && (claims?.verified || claims?.admin);
-  if (authLoading || !isEligible) return null;
-
   async function pick(v: RsvpStatus) {
+    // No session — send to login with intent encoded in the next URL
+    if (!user) {
+      router.push(
+        `/login?next=${encodeURIComponent(`/e/${eventId}?rsvp=${v}`)}`
+      );
+      return;
+    }
+    // Signed in but not yet a verified realtor — go to registration completion
+    if (!claims?.verified && !claims?.admin) {
+      router.push(`/register?next=${encodeURIComponent(`/e/${eventId}?rsvp=${v}`)}`);
+      return;
+    }
     try {
-      // Toggle off if clicking the active status
       await update(status === v ? null : v);
     } catch (e) {
       console.error("[rsvp]", e);
@@ -53,12 +62,19 @@ export default function RsvpButtons({ eventId }: Props) {
                   : "bg-(--color-cream) text-(--color-deep) hover:bg-(--color-sage)/30"
               }`}
             >
-              <span aria-hidden className="ml-1">{opt.emoji}</span>
+              <span aria-hidden className="ml-1">
+                {opt.emoji}
+              </span>
               {opt.label}
             </button>
           );
         })}
       </div>
+      {!user && (
+        <p className="text-xs text-(--color-moss) mt-1.5 opacity-80">
+          לאישור הגעה צריך להירשם
+        </p>
+      )}
     </div>
   );
 }
