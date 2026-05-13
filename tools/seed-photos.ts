@@ -32,7 +32,7 @@ const SOURCE_DIR = join(
   "Listing - 27 February, 2026 01_40 PM - Photos"
 );
 const PHOTOS_PER_EVENT = 6;
-const EVENTS_TO_FILL = 5; // top 5 active events
+const EVENTS_TO_FILL = 50; // every active event without photos
 
 function shuffle<T>(arr: T[]): T[] {
   const out = arr.slice();

@@ -255,6 +255,9 @@ export default function CreateEventClient() {
       if (!form.address.address) {
         throw new Error("הזן כתובת");
       }
+      if (t !== "land" && photos.length === 0) {
+        throw new Error("העלה לפחות תמונה אחת של הנכס");
+      }
 
       let { lat, lng } = form.address;
       let city = form.address.city;

@@ -83,13 +83,17 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
           <span className="w-12 h-1.5 rounded-full bg-(--color-moss)/40" />
         </div>
       )}
-      <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3 flex items-center gap-2 z-10">
+      <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3 flex items-center gap-2 z-20">
         <FavouriteButton eventId={event.id} />
         <button
           type="button"
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           aria-label="סגור"
-          className="w-9 h-9 rounded-full bg-(--color-cream) hover:bg-(--color-sage) text-(--color-deep) flex items-center justify-center transition-colors"
+          style={{ touchAction: "manipulation" }}
+          className="w-11 h-11 rounded-full bg-(--color-cream) hover:bg-(--color-sage) text-(--color-deep) flex items-center justify-center transition-colors active:scale-95"
         >
           ✕
         </button>
