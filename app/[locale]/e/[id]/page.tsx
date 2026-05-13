@@ -58,31 +58,31 @@ export default async function EventDetailPage({
   const vis = visibilityLabel[event.visibility] ?? visibilityLabel.public;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <a
-        href="/"
-        className="inline-flex items-center gap-1 text-(--color-moss) hover:text-(--color-forest) text-sm"
-      >
-        ← חזרה למפה
-      </a>
+    <main className="max-w-3xl mx-auto px-4 pb-10 space-y-6 pt-safe pl-safe pr-safe">
+      {/* Top bar: back link (right in RTL) and visibility chip (left in RTL) on
+          their own line so they can never collide with the big price below. */}
+      <div className="flex items-center justify-between gap-3 pt-3">
+        <a
+          href="/"
+          className="inline-flex items-center gap-1 text-(--color-moss) hover:text-(--color-forest) text-sm font-medium"
+        >
+          ← חזרה למפה
+        </a>
+        <span
+          className="text-xs font-medium px-3 py-1.5 rounded-full whitespace-nowrap shadow-sm"
+          style={{ background: `${vis.color}22`, color: vis.color }}
+        >
+          {vis.label}
+        </span>
+      </div>
 
       <header className="space-y-3">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-5xl font-[var(--font-display)] font-bold text-(--color-deep) leading-none tracking-tight">
-              {formatPriceFull(event.price)}
-            </h1>
-            <p className="text-xl text-(--color-deep) mt-2 font-medium">
-              {event.address}
-            </p>
-          </div>
-          <span
-            className="text-sm font-medium px-3 py-1.5 rounded-full whitespace-nowrap shadow-sm"
-            style={{ background: `${vis.color}22`, color: vis.color }}
-          >
-            {vis.label}
-          </span>
-        </div>
+        <h1 className="text-4xl sm:text-5xl font-[var(--font-display)] font-bold text-(--color-deep) leading-none tracking-tight break-words">
+          {formatPriceFull(event.price)}
+        </h1>
+        <p className="text-lg sm:text-xl text-(--color-deep) font-medium">
+          {event.address}
+        </p>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--color-cream) text-(--color-deep) text-sm">
           <span aria-hidden>📅</span>
           <span className="font-medium">{event.date}</span>
