@@ -8,12 +8,15 @@ interface Props {
   children: React.ReactNode;
   hidden?: boolean;
   countLabel?: string;
+  /** Optional action shown in the collapsed sheet header (e.g. "+ Open House"
+   *  for verified realtors). Tap doesn't expand the sheet. */
+  leadingAction?: React.ReactNode;
   snap: Snap;
   onSnapChange: (s: Snap) => void;
 }
 
 const HEIGHTS: Record<Snap, string> = {
-  collapsed: "58px",
+  collapsed: "72px",
   half: "55dvh",
   full: "92dvh",
 };
@@ -22,6 +25,7 @@ export default function MobileSheet({
   children,
   hidden,
   countLabel,
+  leadingAction,
   snap,
   onSnapChange,
 }: Props) {
@@ -70,28 +74,35 @@ export default function MobileSheet({
       role="dialog"
       aria-label="רשימת בתים פתוחים"
     >
-      {/* Handle — only this small zone triggers cycle/swipe */}
-      <button
-        type="button"
-        onClick={onHandleClick}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        aria-label={isCollapsed ? "פתח רשימה" : "סגור רשימה"}
-        className="w-full flex items-center justify-between px-5 pt-2 pb-2 touch-pan-y"
-      >
-        <span className="w-6 text-xs text-(--color-moss) opacity-70" aria-hidden>
-          {isCollapsed ? "▲" : "▼"}
-        </span>
-        <span className="flex flex-col items-center">
+      {/* Header row: leading action (e.g. + Open House) | handle bar + count | trailing arrow */}
+      <div className="w-full flex items-center justify-between gap-2 px-3 pt-2 pb-2">
+        <div className="flex-1 min-w-0 flex justify-start">
+          {leadingAction}
+        </div>
+        <button
+          type="button"
+          onClick={onHandleClick}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          aria-label={isCollapsed ? "פתח רשימה" : "סגור רשימה"}
+          className="flex flex-col items-center touch-pan-y"
+        >
           <span className="w-12 h-1.5 rounded-full bg-(--color-cream)" />
           {isCollapsed && countLabel && (
             <span className="text-sm text-(--color-deep) font-medium mt-1.5">
               {countLabel}
             </span>
           )}
-        </span>
-        <span className="w-6" aria-hidden />
-      </button>
+        </button>
+        <div className="flex-1 flex justify-end items-center">
+          <span
+            className="text-xs text-(--color-moss) opacity-70 px-1"
+            aria-hidden
+          >
+            {isCollapsed ? "▲" : "▼"}
+          </span>
+        </div>
+      </div>
 
       {/* Content — only interactive when expanded */}
       <div

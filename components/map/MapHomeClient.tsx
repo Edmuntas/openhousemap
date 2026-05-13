@@ -113,26 +113,24 @@ export default function MapHomeClient() {
           </div>
         </div>
 
-        {/* Floating action button: '+ Open House' for verified realtors.
-            Positioned bottom-right above the collapsed sheet (58px) so it
-            never collides with map chrome. Hides when sheet is expanded or
-            popup is open. */}
-        {isRealtor && !selected && sheetSnap === "collapsed" && (
-          <Link
-            href="/create"
-            aria-label="פרסם בית פתוח חדש"
-            className="absolute bottom-[80px] left-4 pl-safe z-[1250] inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-4 pr-3 py-2.5 shadow-lg text-sm font-semibold hover:bg-(--color-forest) active:scale-[0.97] transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Open House
-          </Link>
-        )}
-
         <MobileSheet
           countLabel={`${filtered.length} בתים פתוחים`}
           hidden={!!selected}
           snap={sheetSnap}
           onSnapChange={setSheetSnap}
+          leadingAction={
+            isRealtor ? (
+              <Link
+                href="/create"
+                aria-label="פרסם בית פתוח חדש"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 text-sm font-semibold hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4" />
+                Open House
+              </Link>
+            ) : null
+          }
         >
           {sidebarContent}
         </MobileSheet>
