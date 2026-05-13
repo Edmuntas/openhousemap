@@ -70,6 +70,9 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
           : undefined
       }
     >
+      {/* Top header bar: always-visible close + favourite. Drag handle sits
+          on its own row above it on mobile so the two affordances don't
+          overlap. */}
       {isMobile && (
         <div
           role="button"
@@ -78,26 +81,26 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
           onTouchStart={onHandleTouchStart}
           onTouchMove={onHandleTouchMove}
           onTouchEnd={onHandleTouchEnd}
-          onClick={onClose}
-          className="w-full flex justify-center pt-2.5 pb-2 cursor-grab active:cursor-grabbing touch-pan-y"
+          className="w-full flex justify-center pt-2.5 pb-1 cursor-grab active:cursor-grabbing touch-pan-y"
         >
           <span className="w-12 h-1.5 rounded-full bg-(--color-moss)/40" />
         </div>
       )}
-      <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3 flex items-center gap-2 z-20">
-        <FavouriteButton eventId={event.id} />
+      <div className="flex items-center justify-between px-3 pt-2 pb-1 gap-2 relative z-10 bg-(--surface)">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onClose();
           }}
-          aria-label="סגור"
+          aria-label="חזרה למפה"
           style={{ touchAction: "manipulation" }}
-          className="w-11 h-11 rounded-full bg-(--color-cream) hover:bg-(--color-sage) text-(--color-deep) flex items-center justify-center transition-colors active:scale-95"
+          className="inline-flex items-center gap-1.5 bg-(--color-cream) text-(--color-deep) rounded-full pl-3 pr-2 py-1.5 text-sm font-medium hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
+          סגור
         </button>
+        <FavouriteButton eventId={event.id} />
       </div>
 
       <PhotoGallery photos={event.photos} alt={event.address} aspect="video" />
