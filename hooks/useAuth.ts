@@ -4,9 +4,17 @@ import { useEffect, useState } from "react";
 import { onIdTokenChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
+/** Custom claims we set on the Firebase Auth token via the verifyLicense
+ *  Cloud Function. Keep this in sync with functions/src/auth.ts. */
+export interface CustomClaims {
+  role?: "realtor" | "admin";
+  verified?: boolean;
+  admin?: boolean;
+}
+
 export interface AuthState {
   user: User | null;
-  claims: { role?: string; verified?: boolean; admin?: boolean } | null;
+  claims: CustomClaims | null;
   loading: boolean;
 }
 
@@ -24,12 +32,14 @@ export function useAuth(): AuthState {
         return;
       }
       const tokenResult = await user.getIdTokenResult();
+      // Single cast at the boundary — downstream code reads typed fields.
+      const claims = tokenResult.claims as CustomClaims;
       setState({
         user,
         claims: {
-          role: tokenResult.claims.role as string | undefined,
-          verified: tokenResult.claims.verified as boolean | undefined,
-          admin: tokenResult.claims.admin as boolean | undefined,
+          role: claims.role,
+          verified: claims.verified,
+          admin: claims.admin,
         },
         loading: false,
       });
