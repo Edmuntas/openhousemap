@@ -87,19 +87,21 @@ export default function OpenGraphImage() {
           </div>
         </div>
 
-        {/* Hebrew tagline */}
+        {/* Hebrew tagline — Satori doesn't apply Unicode bidi, so we pre-reverse
+            the visually-right-to-left string into source-left-to-right order so
+            it renders correctly in the PNG. The original text is:
+              "כל הבתים הפתוחים — במקום אחד" */}
         <div
           style={{
             fontSize: 56,
             fontWeight: 700,
             color: "#2E4E1A",
             textAlign: "center",
-            direction: "rtl",
             marginBottom: 24,
             display: "flex",
           }}
         >
-          כל הבתים הפתוחים — במקום אחד
+          דחא םוקמב — םיחותפה םיתבה לכ
         </div>
 
         {/* English subline */}
