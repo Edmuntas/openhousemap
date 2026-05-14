@@ -139,20 +139,14 @@ export default function MapHomeClient() {
           />
         </div>
 
-        {/* Decorative top brand plaque. Pointer-events-none so it doesn't
-            block map gestures.
-            Typography hierarchy:
-              Line 1 (primary)  : hebrew tagline — large, bold, deep
-              Line 2 (secondary): English domain — small, moss, semibold
-            Hebrew in Rubik reads visually thinner than Latin at the same
-            weight, so the primary line is bumped to text-base + font-bold to
-            keep optical balance against the Latin subline. */}
+        {/* Marketing brand plaque — mobile only. Logo + hebrew slogan, no
+            English text. Pointer-events-none so map gestures pass through. */}
         <div className="absolute top-0 inset-x-0 pt-safe z-[1200] pointer-events-none">
           <div className="flex justify-center px-3 pt-3">
-            <div className="inline-flex items-center gap-3 bg-(--color-ivory)/95 backdrop-blur-md rounded-2xl px-4 py-2.5 shadow-[0_6px_24px_rgba(20,28,10,0.10)] ring-1 ring-(--color-moss)/12">
+            <div className="inline-flex items-center gap-3.5 bg-(--color-ivory)/95 backdrop-blur-md rounded-2xl px-5 py-3 shadow-[0_8px_28px_rgba(20,28,10,0.12)] ring-1 ring-(--color-moss)/15">
               <svg
-                width="34"
-                height="34"
+                width="40"
+                height="40"
                 viewBox="0 0 64 64"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden
@@ -167,17 +161,9 @@ export default function MapHomeClient() {
                   d="M32 14 L18 26 L21 26 L21 39 L29 39 L29 31 L35 31 L35 39 L43 39 L43 26 L46 26 Z"
                 />
               </svg>
-              <div className="flex flex-col leading-tight">
-                <span className="text-[16px] font-bold text-(--color-deep) tracking-tight">
-                  כל הבתים הפתוחים — במקום אחד
-                </span>
-                <span
-                  dir="ltr"
-                  className="text-[11px] text-(--color-moss) font-semibold tracking-wide mt-0.5"
-                >
-                  openhousemap.online
-                </span>
-              </div>
+              <span className="text-[18px] font-bold text-(--color-deep) tracking-tight leading-snug">
+                כל הבתים הפתוחים — במקום אחד
+              </span>
             </div>
           </div>
         </div>
@@ -206,37 +192,59 @@ export default function MapHomeClient() {
   return (
     <main className="flex flex-row h-svh-safe overflow-hidden">
       <aside className="w-[380px] flex-shrink-0 bg-(--surface) border-l border-(--color-cream) flex flex-col overflow-hidden">
-        {/* Title row: brand on its OWN line so it never collides with action
-            chrome. Profile pill stays inline on the right (visual left in
-            RTL) — small enough to not crowd a long title. Tagline + create
-            CTA stack underneath. */}
-        <header className="px-4 pt-3 pb-3 border-b border-(--color-cream) space-y-2">
+        {/* Sidebar header — desktop identity anchor.
+            Row 1: logo + brand title + profile FAB (action edge)
+            Row 2: hebrew tagline (primary value prop)
+            Row 3: + Open House CTA — realtors only.
+            Brand and tagline use the same logo/typography palette as the
+            mobile plaque, so the identity feels consistent across breakpoints
+            even though the layout is different. */}
+        <header className="px-4 pt-4 pb-4 border-b border-(--color-cream) bg-gradient-to-b from-(--color-cream)/30 to-transparent space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <h1 className="text-2xl font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight leading-tight">
-              {t("name")}
-            </h1>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 64 64"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
+                className="shrink-0"
+              >
+                <path
+                  fill="var(--color-moss)"
+                  d="M32 2 C18.7 2 8 12.7 8 26 c0 18.4 24 36 24 36 s24-17.6 24-36 C56 12.7 45.3 2 32 2 z"
+                />
+                <path
+                  fill="var(--color-ivory)"
+                  d="M32 14 L18 26 L21 26 L21 39 L29 39 L29 31 L35 31 L35 39 L43 39 L43 26 L46 26 Z"
+                />
+              </svg>
+              <h1 className="text-xl font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight leading-tight truncate">
+                {t("name")}
+              </h1>
+            </div>
             <Link
               href={user ? "/dashboard" : "/login?next=/dashboard"}
               aria-label="הפרופיל שלי"
-              className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ring-2 ${
+              className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ${
                 user
-                  ? "bg-(--color-moss) text-(--color-ivory) ring-(--color-moss)/30 hover:ring-(--color-moss)/60"
-                  : "bg-(--color-cream) text-(--color-deep) ring-(--color-moss)/20 hover:ring-(--color-moss)/50"
+                  ? "bg-(--color-moss) text-(--color-ivory) shadow-md shadow-(--color-moss)/25 hover:bg-(--color-forest)"
+                  : "bg-(--color-cream) text-(--color-deep) hover:bg-(--color-sage)/40"
               }`}
             >
               {user ? <UserRound className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
             </Link>
           </div>
-          <p className="text-xs text-(--color-moss) font-medium">
+          <p className="text-sm font-semibold text-(--color-moss) leading-snug">
             {t("tagline")}
           </p>
           {isRealtor && (
             <Link
               href="/create"
               aria-label="פרסם בית פתוח חדש"
-              className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 text-sm font-medium hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full px-4 h-9 text-sm font-semibold shadow-sm shadow-(--color-moss)/20 hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4" strokeWidth={2.75} />
               Open House
             </Link>
           )}
