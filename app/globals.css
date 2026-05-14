@@ -96,6 +96,13 @@ body {
   padding-right: max(0px, env(safe-area-inset-right));
 }
 
+/* iOS auto-scrolls a focused input flush to the top of the viewport,
+   tucking it under the notch / dynamic island. Buffer with scroll-margin
+   so the field lands well below the safe-area top. */
+.scroll-anchor {
+  scroll-margin-top: 5rem;
+}
+
 /* Luxury easing for animations */
 * {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
