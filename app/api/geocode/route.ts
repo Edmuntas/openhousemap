@@ -256,19 +256,51 @@ async function resolveCityCoords(
 }
 
 async function resolveCoords(query: string): Promise<[number, number] | null> {
-  const url =
-    `https://nominatim.openstreetmap.org/search?` +
-    `q=${encodeURIComponent(query)}&countrycodes=il&format=json&limit=1&accept-language=he`;
-  const resp = await fetch(url, {
-    headers: {
-      "User-Agent": "OpenHouseMap/1.0 (https://openhousemap.online)",
-    },
-    next: { revalidate: 604800 }, // 1 week — addresses are stable
-  });
-  if (!resp.ok) return null;
-  const data = (await resp.json()) as { lon: string; lat: string }[];
-  if (!data[0]) return null;
-  return [Number(data[0].lon), Number(data[0].lat)];
+  // Try Nominatim first (best hebrew coverage when responsive)
+  try {
+    const url =
+      `https://nominatim.openstreetmap.org/search?` +
+      `q=${encodeURIComponent(query)}&countrycodes=il&format=json&limit=1&accept-language=he`;
+    const resp = await fetch(url, {
+      headers: {
+        "User-Agent": "OpenHouseMap/1.0 (https://openhousemap.online)",
+      },
+      next: { revalidate: 604800 },
+    });
+    if (resp.ok) {
+      const data = (await resp.json()) as { lon: string; lat: string }[];
+      if (data[0]) {
+        return [Number(data[0].lon), Number(data[0].lat)];
+      }
+    }
+  } catch {
+    // fall through to Photon
+  }
+
+  // Photon fallback — different IP space, no shared serverless rate limit.
+  // Covers Israeli streets well; hebrew lang first, then english.
+  for (const lang of ["he", "en"] as const) {
+    try {
+      const purl =
+        `https://photon.komoot.io/api/?` +
+        `q=${encodeURIComponent(query)}&lang=${lang}&limit=1&bbox=${ISRAEL_BBOX}`;
+      const presp = await fetch(purl, { next: { revalidate: 604800 } });
+      if (!presp.ok) continue;
+      const pdata = (await presp.json()) as PhotonResponse;
+      const f = pdata.features?.[0];
+      if (!f) continue;
+      const country = f.properties.country;
+      if (country && country !== "Israel" && country !== "ישראל") continue;
+      const [lng, lat] = f.geometry.coordinates;
+      if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        return [lng, lat];
+      }
+    } catch {
+      // try next lang
+    }
+  }
+
+  return null;
 }
 
 // -------------------- Photon (Latin queries) --------------------
