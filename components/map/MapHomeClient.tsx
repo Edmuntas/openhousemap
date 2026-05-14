@@ -140,13 +140,19 @@ export default function MapHomeClient() {
         </div>
 
         {/* Decorative top brand plaque. Pointer-events-none so it doesn't
-            block map gestures. Two-line: logo + brand, tagline below. */}
+            block map gestures.
+            Typography hierarchy:
+              Line 1 (primary)  : hebrew tagline — large, bold, deep
+              Line 2 (secondary): English domain — small, moss, semibold
+            Hebrew in Rubik reads visually thinner than Latin at the same
+            weight, so the primary line is bumped to text-base + font-bold to
+            keep optical balance against the Latin subline. */}
         <div className="absolute top-0 inset-x-0 pt-safe z-[1200] pointer-events-none">
           <div className="flex justify-center px-3 pt-3">
-            <div className="inline-flex items-center gap-2.5 bg-(--color-ivory)/95 backdrop-blur-md rounded-2xl px-3.5 py-2 shadow-[0_4px_20px_rgba(20,28,10,0.08)] ring-1 ring-(--color-moss)/10">
+            <div className="inline-flex items-center gap-3 bg-(--color-ivory)/95 backdrop-blur-md rounded-2xl px-4 py-2.5 shadow-[0_6px_24px_rgba(20,28,10,0.10)] ring-1 ring-(--color-moss)/12">
               <svg
-                width="32"
-                height="32"
+                width="34"
+                height="34"
                 viewBox="0 0 64 64"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden
@@ -162,11 +168,14 @@ export default function MapHomeClient() {
                 />
               </svg>
               <div className="flex flex-col leading-tight">
-                <span className="text-[15px] font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight">
-                  OpenHouse Map
-                </span>
-                <span className="text-[11px] text-(--color-moss) font-medium">
+                <span className="text-[16px] font-bold text-(--color-deep) tracking-tight">
                   כל הבתים הפתוחים — במקום אחד
+                </span>
+                <span
+                  dir="ltr"
+                  className="text-[11px] text-(--color-moss) font-semibold tracking-wide mt-0.5"
+                >
+                  openhousemap.online
                 </span>
               </div>
             </div>
