@@ -16,7 +16,7 @@ import {
   Calendar,
   Star,
   Home as HomeIcon,
-  ArrowLeft,
+  ChevronLeft,
   Award,
   CheckCircle2,
 } from "lucide-react";
@@ -101,43 +101,47 @@ export default function DashboardClient() {
       : []),
   ];
 
+  const displayName = user.displayName ?? user.email?.split("@")[0] ?? "";
+
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <header className="flex justify-between items-end gap-4 flex-wrap">
-        <div className="space-y-1">
-          <p className="text-xs text-(--color-moss) tracking-wide uppercase">
-            שלום
-          </p>
-          <h1 className="text-4xl font-[var(--font-display)] font-semibold text-(--color-deep) leading-none">
-            {user.displayName ?? user.email?.split("@")[0]}
-          </h1>
-          <div className="flex items-center gap-2 mt-2">
+    <main className="max-w-4xl mx-auto px-5 pt-6 pb-10 space-y-5">
+      {/* Header: greeting + name + role on one balanced row.
+          On narrow screens the action row drops below; on wider screens it
+          sits opposite. Name is text-2xl (was 4xl) so it doesn't dwarf the
+          rest of the chrome. */}
+      <header className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-sm text-(--color-moss) font-medium">שלום,</span>
+            <h1 className="text-2xl md:text-3xl font-[var(--font-display)] font-bold text-(--color-deep) leading-tight tracking-tight truncate">
+              {displayName}
+            </h1>
             {claims?.admin && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-(--color-gold)/30 rounded-full text-xs font-medium">
-                <Award className="w-3 h-3" /> admin
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-gold)/25 text-(--color-deep) rounded-full text-[11px] font-semibold">
+                <Award className="w-3 h-3" aria-hidden /> admin
               </span>
             )}
             {!claims?.admin && claims?.verified && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-(--color-sage)/40 rounded-full text-xs font-medium">
-                <CheckCircle2 className="w-3 h-3" /> verified realtor
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-sage)/40 text-(--color-deep) rounded-full text-[11px] font-semibold">
+                <CheckCircle2 className="w-3 h-3" aria-hidden /> מאומת
               </span>
             )}
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <nav className="flex items-center gap-1.5 flex-shrink-0" aria-label="פעולות חשבון">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+            className="inline-flex items-center gap-1.5 bg-(--color-cream) text-(--color-deep) px-3 py-2 rounded-full text-sm font-medium hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
           >
-            <MapIcon className="w-4 h-4" />
-            חזרה למפה
+            <MapIcon className="w-4 h-4" aria-hidden />
+            <span className="hidden sm:inline">חזרה למפה</span>
           </Link>
           {isRealtor && (
             <Link
               href="/create"
-              className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) px-4 py-2 rounded-xl text-sm font-medium hover:bg-(--color-forest) transition-colors active:scale-[0.97]"
+              className="inline-flex items-center gap-1.5 bg-(--color-deep) text-(--color-ivory) px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-(--color-forest) transition-colors active:scale-[0.97]"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4" aria-hidden />
               Open House
             </Link>
           )}
@@ -147,12 +151,12 @@ export default function DashboardClient() {
               await signOut(auth);
               router.push("/");
             }}
-            className="inline-flex items-center gap-1.5 bg-(--color-cream) text-(--color-deep) px-4 py-2 rounded-xl text-sm hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+            aria-label="התנתק"
+            className="inline-flex items-center justify-center bg-(--color-cream) text-(--color-deep) w-9 h-9 rounded-full hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
           >
-            <LogOut className="w-4 h-4" />
-            התנתק
+            <LogOut className="w-4 h-4" aria-hidden />
           </button>
-        </div>
+        </nav>
       </header>
 
       {/* Stat cards double as tabs — tap a card to switch the panel below.
@@ -221,7 +225,7 @@ function AttendingList({
   if (upcoming.length === 0 && past.length === 0) {
     return (
       <EmptyState
-        emoji="📅"
+        Icon={Calendar}
         text="עדיין לא סימנת השתתפות באף Open House"
         cta={{ href: "/", label: "גלוש במפה" }}
       />
@@ -264,28 +268,34 @@ function AttendingCard({ event, status }: { event: EventWithId; status: string }
     <li>
       <Link
         href={`/e/${event.id}`}
-        className="flex items-center gap-3 p-4 rounded-xl bg-(--color-cream)/60 hover:bg-(--color-cream) transition-colors"
+        className="group flex items-center gap-3 p-3.5 rounded-2xl bg-(--color-cream)/60 ring-1 ring-(--color-moss)/8 hover:bg-(--color-cream) hover:ring-(--color-moss)/20 transition-all"
       >
-        <div className="flex-1">
-          <div className="flex items-baseline justify-between gap-2 flex-wrap">
-            <div className="font-[var(--font-display)] text-(--color-deep) font-semibold">
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <div className="font-[var(--font-display)] text-(--color-deep) font-bold text-lg leading-none tracking-tight">
               {formatPrice(event.price)}
             </div>
             <span
-              className="text-xs font-medium px-2 py-0.5 rounded-full"
+              className="text-[11px] font-semibold px-2 py-0.5 rounded-full tracking-wide"
               style={{ background: `${s.color}22`, color: s.color }}
             >
               {s.label}
             </span>
           </div>
-          <div className="text-sm text-(--color-deep)">{event.address}</div>
+          <div className="text-sm text-(--color-deep) font-medium truncate">
+            {event.address}
+          </div>
           <div className="text-xs text-(--color-moss)">
-            <span dir="ltr">{event.date}</span> ·{" "}
+            <span dir="ltr">{event.date}</span>
+            {" · "}
             <span dir="ltr">{event.startTime}–{event.endTime}</span>
             {event.rooms != null && ` · ${event.rooms} חד׳`}
           </div>
         </div>
-        <span className="text-(--color-moss)">←</span>
+        <ChevronLeft
+          className="w-4 h-4 text-(--color-moss)/60 group-hover:text-(--color-moss) flex-shrink-0 transition-colors"
+          aria-hidden
+        />
       </Link>
     </li>
   );
@@ -302,7 +312,7 @@ function FavouriteList({
   if (events.length === 0) {
     return (
       <EmptyState
-        emoji="☆"
+        Icon={Star}
         text="עדיין לא הוספת בתים פתוחים למועדפים"
         cta={{ href: "/", label: "גלוש במפה" }}
       />
@@ -314,18 +324,32 @@ function FavouriteList({
         <li key={event.id}>
           <Link
             href={`/e/${event.id}`}
-            className="flex items-center gap-3 p-4 rounded-xl bg-(--color-cream)/60 hover:bg-(--color-cream) transition-colors"
+            className="group flex items-center gap-3 p-3.5 rounded-2xl bg-(--color-cream)/60 ring-1 ring-(--color-moss)/8 hover:bg-(--color-cream) hover:ring-(--color-moss)/20 transition-all"
           >
-            <div className="flex-1">
-              <div className="font-[var(--font-display)] text-(--color-deep) font-semibold">
-                {formatPrice(event.price)}
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="font-[var(--font-display)] text-(--color-deep) font-bold text-lg leading-none tracking-tight">
+                  {formatPrice(event.price)}
+                </div>
+                <Star
+                  className="w-4 h-4 text-(--color-gold) fill-(--color-gold)"
+                  aria-hidden
+                />
               </div>
-              <div className="text-sm text-(--color-deep)">{event.address}</div>
+              <div className="text-sm text-(--color-deep) font-medium truncate">
+                {event.address}
+              </div>
               <div className="text-xs text-(--color-moss)">
-                {event.date} · {event.startTime}–{event.endTime}
+                <span dir="ltr">{event.date}</span>
+                {" · "}
+                <span dir="ltr">{event.startTime}–{event.endTime}</span>
+                {event.rooms != null && ` · ${event.rooms} חד׳`}
               </div>
             </div>
-            <span className="text-(--color-gold)">★</span>
+            <ChevronLeft
+              className="w-4 h-4 text-(--color-moss)/60 group-hover:text-(--color-moss) flex-shrink-0 transition-colors"
+              aria-hidden
+            />
           </Link>
         </li>
       ))}
@@ -348,7 +372,7 @@ function OwnedList({
   if (todays.length === 0 && upcoming.length === 0 && archived.length === 0) {
     return (
       <EmptyState
-        emoji="🏠"
+        Icon={HomeIcon}
         text="טרם פרסמת אירועים"
         cta={{ href: "/create", label: "+ Open House" }}
       />
@@ -391,21 +415,23 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 }
 
 function EmptyState({
-  emoji,
+  Icon,
   text,
   cta,
 }: {
-  emoji: string;
+  Icon: typeof MapIcon;
   text: string;
   cta: { href: string; label: string };
 }) {
   return (
-    <div className="text-center py-16 space-y-4 bg-gradient-to-b from-transparent to-(--color-cream)/40 rounded-3xl">
-      <div className="text-5xl">{emoji}</div>
-      <p className="text-(--color-moss)">{text}</p>
+    <div className="text-center py-14 space-y-4 bg-gradient-to-b from-transparent to-(--color-cream)/50 rounded-3xl">
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-(--color-cream) text-(--color-moss)">
+        <Icon className="w-7 h-7" aria-hidden />
+      </div>
+      <p className="text-(--color-moss) font-medium px-6">{text}</p>
       <Link
         href={cta.href}
-        className="inline-block bg-(--color-moss) text-(--color-ivory) px-5 py-2.5 rounded-xl"
+        className="inline-block bg-(--color-deep) text-(--color-ivory) px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-(--color-forest) transition-colors"
       >
         {cta.label}
       </Link>
@@ -432,28 +458,26 @@ function StatTab({
       onClick={onClick}
       aria-pressed={active}
       style={{ touchAction: "manipulation" }}
-      className={`text-right rounded-2xl p-4 transition-all active:scale-[0.97] ${
+      className={`relative text-right rounded-2xl p-3.5 transition-all active:scale-[0.97] ${
         active
-          ? "bg-(--color-moss) text-(--color-ivory) ring-2 ring-(--color-moss) shadow-md"
-          : "bg-(--color-cream)/70 text-(--color-deep) ring-1 ring-(--color-moss)/10 hover:ring-(--color-moss)/30"
+          ? "bg-(--color-cream) ring-2 ring-(--color-moss) text-(--color-deep)"
+          : "bg-(--color-cream)/60 ring-1 ring-(--color-moss)/10 text-(--color-deep) hover:ring-(--color-moss)/30"
       }`}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <span
-          className={`text-3xl font-[var(--font-display)] font-semibold leading-none ${
-            active ? "text-(--color-ivory)" : "text-(--color-deep)"
-          }`}
-        >
+        <span className="text-3xl font-[var(--font-display)] font-bold leading-none tracking-tight">
           {value}
         </span>
         <Icon
           aria-hidden
-          className={`w-5 h-5 ${active ? "text-(--color-ivory)/80" : "text-(--color-moss)"}`}
+          className={`w-4.5 h-4.5 transition-colors ${
+            active ? "text-(--color-moss)" : "text-(--color-moss)/60"
+          }`}
         />
       </div>
       <div
-        className={`text-xs mt-2 tracking-wide truncate ${
-          active ? "text-(--color-ivory)/85" : "text-(--color-moss)"
+        className={`text-[11px] mt-2 font-semibold tracking-wide truncate ${
+          active ? "text-(--color-moss)" : "text-(--color-moss)/80"
         }`}
       >
         {label}
