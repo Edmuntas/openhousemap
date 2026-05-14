@@ -129,14 +129,30 @@ export default function DashboardClient() {
             </span>
           )}
         </div>
+        {/* Mobile: symmetric distribution — logout (RTL start = right),
+            Open House primary CTA centered, map (RTL end = left).
+            DOM order matters: in RTL flex+justify-between the first child
+            renders rightmost.
+            Desktop (md+): grouped tightly on the leading edge. */}
         <nav
-          className="flex items-center justify-end gap-2 shrink-0"
+          className="flex items-center gap-2 justify-between md:justify-end shrink-0"
           aria-label="פעולות חשבון"
         >
+          <button
+            type="button"
+            onClick={async () => {
+              await signOut(auth);
+              router.push("/");
+            }}
+            aria-label="התנתק"
+            className="inline-flex items-center justify-center bg-(--color-cream) text-(--color-deep) w-10 h-10 rounded-full hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97] shrink-0"
+          >
+            <LogOut className="w-4 h-4" aria-hidden />
+          </button>
           {isRealtor && (
             <Link
               href="/create"
-              className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) px-4 h-10 rounded-full text-sm font-semibold hover:bg-(--color-forest) transition-colors active:scale-[0.97] shadow-sm shadow-(--color-moss)/20"
+              className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) px-4 h-10 rounded-full text-sm font-semibold hover:bg-(--color-forest) transition-colors active:scale-[0.97] shadow-sm shadow-(--color-moss)/20 shrink-0"
             >
               <Plus className="w-4 h-4" aria-hidden />
               Open House
@@ -145,21 +161,10 @@ export default function DashboardClient() {
           <Link
             href="/"
             aria-label="חזרה למפה"
-            className="inline-flex items-center justify-center bg-(--color-cream) text-(--color-deep) w-10 h-10 rounded-full hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+            className="inline-flex items-center justify-center bg-(--color-cream) text-(--color-deep) w-10 h-10 rounded-full hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97] shrink-0"
           >
             <MapIcon className="w-4 h-4" aria-hidden />
           </Link>
-          <button
-            type="button"
-            onClick={async () => {
-              await signOut(auth);
-              router.push("/");
-            }}
-            aria-label="התנתק"
-            className="inline-flex items-center justify-center bg-(--color-cream) text-(--color-deep) w-10 h-10 rounded-full hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
-          >
-            <LogOut className="w-4 h-4" aria-hidden />
-          </button>
         </nav>
       </header>
 
