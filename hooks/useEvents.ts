@@ -52,7 +52,10 @@ export function useEvents({
           limit(max),
         ]
       : [
-          where("visibility", "==", "public"),
+          // Per CLAUDE.md: mixed events are visible to everyone (realtors see
+          // full details, anonymous users see the limited view). Only the
+          // "colleagues" tier is gated to verified realtors.
+          where("visibility", "in", ["public", "mixed"]),
           where("status", "==", "active"),
           where("mapVisible", "==", true),
           where("date", ">=", today),

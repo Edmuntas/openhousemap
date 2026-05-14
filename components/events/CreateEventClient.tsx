@@ -9,7 +9,12 @@ import {
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  ref as storageRef,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import { Loader2, X } from "lucide-react";
 import { httpsCallable, getFunctions } from "firebase/functions";
 import ngeohash from "ngeohash";
 import { db, auth, storage, app } from "@/lib/firebase";
@@ -121,6 +126,13 @@ interface UploadedPhoto {
   thumb: string;
 }
 
+interface PendingUpload {
+  id: string;
+  preview: string; // blob: URL for instant local preview
+  progress: number; // 0-100
+  error?: string;
+}
+
 const initial: FormState = {
   address: { address: "", city: "", lat: null, lng: null },
   propertyType: "apartment",
@@ -154,7 +166,8 @@ export default function CreateEventClient() {
   const [form, setForm] = useState<FormState>(initial);
   const [eventId] = useState(() => doc(collection(db, "events")).id);
   const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
+  const uploading = pendingUploads.some((u) => !u.error);
   const [generatingDesc, setGeneratingDesc] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -214,28 +227,71 @@ export default function CreateEventClient() {
     }
     if (!valid.length) return;
 
-    setUploading(true);
-    try {
-      const slot = Math.max(0, 10 - photos.length);
-      const batch = valid.slice(0, slot);
-      const stamp = Date.now();
-      // Parallel uploads
-      const uploaded = await Promise.all(
-        batch.map(async (f, i) => {
-          const path = `events/${eventId}/photo_${stamp}_${i}_${f.name}`;
-          const r = storageRef(storage, path);
-          await uploadBytes(r, f, { contentType: f.type });
-          const url = await getDownloadURL(r);
-          return { full: url, medium: url, thumb: url };
-        })
-      );
-      setPhotos((prev) => [...prev, ...uploaded].slice(0, 10));
-    } catch (e) {
-      console.error(e);
-      setError(`שגיאה בהעלאת תמונות: ${(e as Error).message}`);
-    } finally {
-      setUploading(false);
-    }
+    const slot = Math.max(0, 10 - photos.length - pendingUploads.length);
+    const batch = valid.slice(0, slot);
+    if (!batch.length) return;
+    const stamp = Date.now();
+
+    // Show instant previews — user sees their photos immediately, with a
+    // spinner overlay, instead of staring at "מעלה..." text.
+    const pending: { id: string; file: File; preview: string }[] = batch.map(
+      (f, i) => ({
+        id: `${stamp}_${i}_${f.name}`,
+        file: f,
+        preview: URL.createObjectURL(f),
+      })
+    );
+    setPendingUploads((prev) => [
+      ...prev,
+      ...pending.map((p) => ({ id: p.id, preview: p.preview, progress: 0 })),
+    ]);
+
+    // Upload each file in parallel; stream byte-level progress into state so
+    // every tile shows a moving fill bar.
+    await Promise.all(
+      pending.map(async ({ id, file, preview }) => {
+        const path = `events/${eventId}/photo_${id}`;
+        const r = storageRef(storage, path);
+        const task = uploadBytesResumable(r, file, { contentType: file.type });
+
+        await new Promise<void>((resolve) => {
+          task.on(
+            "state_changed",
+            (snap) => {
+              const pct = Math.round(
+                (snap.bytesTransferred / snap.totalBytes) * 100
+              );
+              setPendingUploads((prev) =>
+                prev.map((p) => (p.id === id ? { ...p, progress: pct } : p))
+              );
+            },
+            (err) => {
+              console.error("[upload]", id, err);
+              setPendingUploads((prev) =>
+                prev.map((p) =>
+                  p.id === id ? { ...p, error: err.message } : p
+                )
+              );
+              resolve();
+            },
+            async () => {
+              try {
+                const url = await getDownloadURL(r);
+                setPhotos((prev) =>
+                  [...prev, { full: url, medium: url, thumb: url }].slice(0, 10)
+                );
+              } catch (e) {
+                console.error("[upload getURL]", id, e);
+              }
+              // Free the blob URL and drop the pending entry.
+              URL.revokeObjectURL(preview);
+              setPendingUploads((prev) => prev.filter((p) => p.id !== id));
+              resolve();
+            }
+          );
+        });
+      })
+    );
   }
 
   async function generateAiDescription() {
@@ -661,10 +717,12 @@ export default function CreateEventClient() {
         </Field>
 
         {t !== "land" && (
-          <Field label={`תמונות (${photos.length}/10)`}>
+          <Field
+            label={`תמונות (${photos.length + pendingUploads.length}/10)`}
+          >
             <label
               className={`relative block border-2 border-dashed rounded-xl p-5 text-center transition-colors ${
-                uploading || photos.length >= 10
+                photos.length + pendingUploads.length >= 10
                   ? "border-(--color-cream) bg-(--color-cream)/30 cursor-not-allowed opacity-60"
                   : "border-(--color-moss)/40 bg-(--color-cream)/30 hover:border-(--color-moss) hover:bg-(--color-cream)/60 cursor-pointer"
               }`}
@@ -682,27 +740,33 @@ export default function CreateEventClient() {
                   e.target.value = "";
                   handlePhotos(arr);
                 }}
-                disabled={uploading || photos.length >= 10}
+                disabled={photos.length + pendingUploads.length >= 10}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                 style={{ fontSize: 0 }}
               />
-              <div className="text-(--color-deep) font-medium pointer-events-none">
+              <div className="text-(--color-deep) font-medium pointer-events-none flex items-center justify-center gap-2">
+                {uploading && (
+                  <Loader2
+                    className="w-4 h-4 animate-spin text-(--color-moss)"
+                    aria-hidden
+                  />
+                )}
                 {uploading
-                  ? "מעלה..."
-                  : photos.length >= 10
+                  ? `מעלה ${pendingUploads.length} תמונות...`
+                  : photos.length + pendingUploads.length >= 10
                   ? "הגעת ל-10 תמונות"
                   : "📸 בחר תמונות או צלם"}
               </div>
               <div className="text-xs text-(--color-moss) mt-1 pointer-events-none">
-                {photos.length === 0
+                {photos.length === 0 && pendingUploads.length === 0
                   ? "JPG / PNG / HEIC · עד 10MB לכל תמונה · עד 10 תמונות"
                   : `${photos.length}/10 תמונות הועלו · לחץ להוספה`}
               </div>
             </label>
-            {photos.length > 0 && (
+            {(photos.length > 0 || pendingUploads.length > 0) && (
               <div className="grid grid-cols-5 gap-2 mt-3">
                 {photos.map((p, i) => (
-                  <div key={i} className="relative group">
+                  <div key={`done-${i}`} className="relative group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.thumb}
@@ -717,8 +781,47 @@ export default function CreateEventClient() {
                       className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-(--vis-red) text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       aria-label="מחק"
                     >
-                      ×
+                      <X className="w-3 h-3" />
                     </button>
+                  </div>
+                ))}
+                {pendingUploads.map((u) => (
+                  <div
+                    key={u.id}
+                    className="relative w-full h-20 rounded-lg overflow-hidden bg-(--color-cream)/30"
+                    aria-label={u.error ? "שגיאה בהעלאה" : "מעלה תמונה"}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={u.preview}
+                      alt=""
+                      className="w-full h-full object-cover opacity-60"
+                    />
+                    {u.error ? (
+                      <div className="absolute inset-0 grid place-items-center bg-(--vis-red)/60 text-white text-[10px] font-semibold px-1 text-center leading-tight">
+                        שגיאה
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 grid place-items-center">
+                        <Loader2
+                          className="w-5 h-5 animate-spin text-white drop-shadow"
+                          aria-hidden
+                        />
+                      </div>
+                    )}
+                    {/* Progress bar at the bottom of the tile */}
+                    {!u.error && (
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+                        <div
+                          className="h-full bg-(--color-moss) transition-[width] duration-150"
+                          style={{ width: `${u.progress}%` }}
+                          role="progressbar"
+                          aria-valuenow={u.progress}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
