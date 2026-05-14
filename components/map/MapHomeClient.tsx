@@ -139,8 +139,39 @@ export default function MapHomeClient() {
           />
         </div>
 
-        {/* Top chrome intentionally absent on mobile. All controls live in the
-            sheet header at the bottom of the screen for one-thumb reach. */}
+        {/* Decorative top brand plaque. Pointer-events-none so it doesn't
+            block map gestures. Two-line: logo + brand, tagline below. */}
+        <div className="absolute top-0 inset-x-0 pt-safe z-[1200] pointer-events-none">
+          <div className="flex justify-center px-3 pt-3">
+            <div className="inline-flex items-center gap-2.5 bg-(--color-ivory)/95 backdrop-blur-md rounded-2xl px-3.5 py-2 shadow-[0_4px_20px_rgba(20,28,10,0.08)] ring-1 ring-(--color-moss)/10">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 64 64"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
+                className="shrink-0"
+              >
+                <path
+                  fill="var(--color-moss)"
+                  d="M32 2 C18.7 2 8 12.7 8 26 c0 18.4 24 36 24 36 s24-17.6 24-36 C56 12.7 45.3 2 32 2 z"
+                />
+                <path
+                  fill="var(--color-ivory)"
+                  d="M32 14 L18 26 L21 26 L21 39 L29 39 L29 31 L35 31 L35 39 L43 39 L43 26 L46 26 Z"
+                />
+              </svg>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[15px] font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight">
+                  OpenHouse Map
+                </span>
+                <span className="text-[11px] text-(--color-moss) font-medium">
+                  כל הבתים הפתוחים — במקום אחד
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <MobileSheet
           countLabel={`${visible.length} בתים פתוחים`}
