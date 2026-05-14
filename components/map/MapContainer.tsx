@@ -2,6 +2,9 @@
 
 import dynamic from "next/dynamic";
 import type { EventWithId } from "@/hooks/useEvents";
+import type { ViewportBounds } from "./MapInner";
+
+export type { ViewportBounds };
 
 // CRITICAL: Leaflet does NOT work with SSR — must be client-only.
 // Always import the map via this wrapper; never import Leaflet in a server component.
@@ -17,13 +20,19 @@ const MapInner = dynamic(() => import("./MapInner"), {
 interface MapContainerProps {
   onEventSelect?: (event: EventWithId) => void;
   selectedEvent?: EventWithId | null;
+  onBoundsChange?: (bounds: ViewportBounds) => void;
 }
 
 export default function MapContainer({
   onEventSelect,
   selectedEvent,
+  onBoundsChange,
 }: MapContainerProps) {
   return (
-    <MapInner onEventSelect={onEventSelect} selectedEvent={selectedEvent} />
+    <MapInner
+      onEventSelect={onEventSelect}
+      selectedEvent={selectedEvent}
+      onBoundsChange={onBoundsChange}
+    />
   );
 }

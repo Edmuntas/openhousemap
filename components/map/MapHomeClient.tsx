@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import MapContainer from "./MapContainer";
+import MapContainer, { type ViewportBounds } from "./MapContainer";
 import EventList from "@/components/events/EventList";
 import EventFilters, { type FilterState } from "@/components/events/EventFilters";
 import EventPopup from "@/components/events/EventPopup";
@@ -24,6 +24,7 @@ export default function MapHomeClient() {
   const [selected, setSelected] = useState<EventWithId | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [sheetSnap, setSheetSnap] = useState<Snap>("collapsed");
+  const [bounds, setBounds] = useState<ViewportBounds | null>(null);
   const { events, loading } = useEvents();
   const { eventIds: favouriteIds } = useMyFavourites();
   const favSet = useMemo(() => new Set(favouriteIds), [favouriteIds]);
@@ -60,6 +61,23 @@ export default function MapHomeClient() {
     });
   }, [events, filters, favSet]);
 
+  // Events visible in current map viewport. Used for the sheet count so the
+  // number reflects what the user actually sees on the map — pan/zoom updates
+  // the count live. Falls back to all filtered events until bounds initialize.
+  const visible = useMemo(() => {
+    if (!bounds) return filtered;
+    return filtered.filter((e) => {
+      const { lat, lng } = e.coordinates;
+      // Handle bounds crossing the antimeridian (won't happen in Israel but
+      // robust): if west > east the longitude range wraps around.
+      const lngInRange =
+        bounds.west <= bounds.east
+          ? lng >= bounds.west && lng <= bounds.east
+          : lng >= bounds.west || lng <= bounds.east;
+      return lat <= bounds.north && lat >= bounds.south && lngInRange;
+    });
+  }, [filtered, bounds]);
+
   const sidebarContent = (
     <>
       <EventFilters value={filters} onChange={setFilters} />
@@ -87,18 +105,17 @@ export default function MapHomeClient() {
           <MapContainer
             onEventSelect={setSelected}
             selectedEvent={selected}
+            onBoundsChange={setBounds}
           />
         </div>
 
-        {/* Floating top chrome — minimal & non-overlapping. Brand on visual
-            right (RTL natural), action FABs on visual left. */}
+        {/* Floating top chrome — RTL natural order:
+            - Right (visual start): profile pill
+            - Left (visual end):    + Open House CTA for realtors,
+                                    brand chip for everyone else.
+            Bottom sheet stays clean (no CTA crowding the count). */}
         <div className="absolute top-0 inset-x-0 pt-safe pl-safe pr-safe z-[1200] pointer-events-none">
           <div className="flex items-start justify-between gap-2 px-3 py-3">
-            <div className="bg-(--surface)/95 backdrop-blur rounded-full px-3 py-1.5 shadow-md pointer-events-auto">
-              <h1 className="text-xs font-[var(--font-display)] font-bold text-(--color-deep) leading-tight tracking-tight">
-                {t("name")}
-              </h1>
-            </div>
             <Link
               href={user ? "/dashboard" : "/login?next=/dashboard"}
               aria-label="הפרופיל שלי"
@@ -110,27 +127,30 @@ export default function MapHomeClient() {
             >
               {user ? <UserRound className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
             </Link>
-          </div>
-        </div>
-
-        <MobileSheet
-          countLabel={`${filtered.length} בתים פתוחים`}
-          hidden={!!selected}
-          snap={sheetSnap}
-          onSnapChange={setSheetSnap}
-          leadingAction={
-            isRealtor ? (
+            {isRealtor ? (
               <Link
                 href="/create"
                 aria-label="פרסם בית פתוח חדש"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-3 pr-2 py-1.5 text-sm font-semibold hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
+                className="pointer-events-auto inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-4 pr-3 h-11 text-sm font-semibold shadow-md hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
               >
                 <Plus className="w-4 h-4" />
                 Open House
               </Link>
-            ) : null
-          }
+            ) : (
+              <div className="pointer-events-auto bg-(--surface)/95 backdrop-blur rounded-full px-3 h-11 inline-flex items-center shadow-md">
+                <h1 className="text-xs font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight">
+                  {t("name")}
+                </h1>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <MobileSheet
+          countLabel={`${visible.length} בתים פתוחים`}
+          hidden={!!selected}
+          snap={sheetSnap}
+          onSnapChange={setSheetSnap}
         >
           {sidebarContent}
         </MobileSheet>

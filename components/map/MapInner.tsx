@@ -16,9 +16,17 @@ const VISIBILITY_COLOR: Record<string, string> = {
   colleagues: "#C04848",
 };
 
+export interface ViewportBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
 interface MapInnerProps {
   onEventSelect?: (event: EventWithId) => void;
   selectedEvent?: EventWithId | null;
+  onBoundsChange?: (bounds: ViewportBounds) => void;
 }
 
 interface ClusterLayer extends L.Layer {
@@ -32,11 +40,17 @@ interface MapState {
   cluster: ClusterLayer;
 }
 
-export default function MapInner({ onEventSelect, selectedEvent }: MapInnerProps) {
+export default function MapInner({
+  onEventSelect,
+  selectedEvent,
+  onBoundsChange,
+}: MapInnerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapState, setMapState] = useState<MapState | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const { events, loading } = useEvents();
+  const onBoundsChangeRef = useRef(onBoundsChange);
+  onBoundsChangeRef.current = onBoundsChange;
 
   // Init map once
   useEffect(() => {
@@ -126,7 +140,25 @@ export default function MapInner({ onEventSelect, selectedEvent }: MapInnerProps
         },
       });
       map.addLayer(cluster);
-      map.on("zoomend", () => setZoom(map!.getZoom()));
+
+      const emitBounds = () => {
+        if (!map) return;
+        const b = map.getBounds();
+        onBoundsChangeRef.current?.({
+          north: b.getNorth(),
+          south: b.getSouth(),
+          east: b.getEast(),
+          west: b.getWest(),
+        });
+      };
+
+      map.on("zoomend", () => {
+        setZoom(map!.getZoom());
+        emitBounds();
+      });
+      map.on("moveend", emitBounds);
+      // Initial emit once map is ready
+      emitBounds();
 
       setMapState({ L, map, cluster });
     })();
