@@ -99,6 +99,36 @@ export default function MapHomeClient() {
 
   // ----- Mobile: fullscreen map + bottom sheet -----
   if (isMobile) {
+    const profileFab = (
+      <Link
+        href={user ? "/dashboard" : "/login?next=/dashboard"}
+        aria-label={user ? "הפרופיל שלי" : "כניסה"}
+        onClick={(e) => e.stopPropagation()}
+        className={`shrink-0 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 ${
+          user
+            ? "bg-(--color-moss) text-(--color-ivory)"
+            : "bg-(--color-cream) text-(--color-deep)"
+        }`}
+      >
+        {user ? (
+          <UserRound className="w-6 h-6" strokeWidth={2.25} />
+        ) : (
+          <LogIn className="w-6 h-6" strokeWidth={2.25} />
+        )}
+      </Link>
+    );
+
+    const createFab = isRealtor ? (
+      <Link
+        href="/create"
+        aria-label="פרסם בית פתוח חדש"
+        onClick={(e) => e.stopPropagation()}
+        className="shrink-0 w-14 h-14 rounded-full bg-(--color-moss) text-(--color-ivory) flex items-center justify-center shadow-lg shadow-(--color-moss)/40 transition-all active:scale-95 hover:bg-(--color-forest)"
+      >
+        <Plus className="w-7 h-7" strokeWidth={3} />
+      </Link>
+    ) : null;
+
     return (
       <main className="fixed inset-0 overflow-hidden">
         <div className="absolute inset-0" onClickCapture={handleMapTap}>
@@ -109,48 +139,16 @@ export default function MapHomeClient() {
           />
         </div>
 
-        {/* Floating top chrome — RTL natural order:
-            - Right (visual start): profile pill
-            - Left (visual end):    + Open House CTA for realtors,
-                                    brand chip for everyone else.
-            Bottom sheet stays clean (no CTA crowding the count). */}
-        <div className="absolute top-0 inset-x-0 pt-safe pl-safe pr-safe z-[1200] pointer-events-none">
-          <div className="flex items-start justify-between gap-2 px-3 py-3">
-            <Link
-              href={user ? "/dashboard" : "/login?next=/dashboard"}
-              aria-label="הפרופיל שלי"
-              className={`pointer-events-auto shrink-0 w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-all active:scale-95 ring-2 ${
-                user
-                  ? "bg-(--color-moss) text-(--color-ivory) ring-(--color-ivory)/70"
-                  : "bg-(--surface)/95 backdrop-blur text-(--color-deep) ring-(--color-moss)/20"
-              }`}
-            >
-              {user ? <UserRound className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
-            </Link>
-            {isRealtor ? (
-              <Link
-                href="/create"
-                aria-label="פרסם בית פתוח חדש"
-                className="pointer-events-auto inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) rounded-full pl-4 pr-3 h-11 text-sm font-semibold shadow-md hover:bg-(--color-forest) active:scale-[0.97] transition-all whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Open House
-              </Link>
-            ) : (
-              <div className="pointer-events-auto bg-(--surface)/95 backdrop-blur rounded-full px-3 h-11 inline-flex items-center shadow-md">
-                <h1 className="text-xs font-[var(--font-display)] font-bold text-(--color-deep) tracking-tight">
-                  {t("name")}
-                </h1>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Top chrome intentionally absent on mobile. All controls live in the
+            sheet header at the bottom of the screen for one-thumb reach. */}
 
         <MobileSheet
           countLabel={`${visible.length} בתים פתוחים`}
           hidden={!!selected}
           snap={sheetSnap}
           onSnapChange={setSheetSnap}
+          leadingAction={createFab}
+          trailingAction={profileFab}
         >
           {sidebarContent}
         </MobileSheet>

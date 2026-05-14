@@ -8,9 +8,13 @@ interface Props {
   children: React.ReactNode;
   hidden?: boolean;
   countLabel?: string;
-  /** Optional action shown in the collapsed sheet header (e.g. "+ Open House"
-   *  for verified realtors). Tap doesn't expand the sheet. */
+  /** Slot on the visual RIGHT in RTL (justify-start flex side). Used for the
+   *  primary thumb-zone CTA (e.g. + Open House FAB). */
   leadingAction?: React.ReactNode;
+  /** Slot on the visual LEFT in RTL (justify-end flex side). Used for the
+   *  secondary FAB (e.g. profile). Replaces the chevron affordance when
+   *  provided; the handle bar still indicates expand/collapse. */
+  trailingAction?: React.ReactNode;
   snap: Snap;
   onSnapChange: (s: Snap) => void;
 }
@@ -26,6 +30,7 @@ export default function MobileSheet({
   hidden,
   countLabel,
   leadingAction,
+  trailingAction,
   snap,
   onSnapChange,
 }: Props) {
@@ -74,8 +79,11 @@ export default function MobileSheet({
       role="dialog"
       aria-label="רשימת בתים פתוחים"
     >
-      {/* Header row: leading action (e.g. + Open House) | handle bar + count | trailing arrow */}
-      <div className="w-full flex items-center justify-between gap-2 px-3 pt-2 pb-2">
+      {/* Header row — thumb-zone CTAs flank the handle. In RTL flex-row:
+          flex-1 + justify-start → renders on the VISUAL RIGHT (leadingAction)
+          flex-1 + justify-end   → renders on the VISUAL LEFT  (trailingAction)
+          Center: drag handle + count (always tappable to expand). */}
+      <div className="w-full flex items-center justify-between gap-3 px-4 pt-3 pb-3">
         <div className="flex-1 min-w-0 flex justify-start">
           {leadingAction}
         </div>
@@ -85,22 +93,24 @@ export default function MobileSheet({
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           aria-label={isCollapsed ? "פתח רשימה" : "סגור רשימה"}
-          className="flex flex-col items-center touch-pan-y"
+          className="flex flex-col items-center touch-pan-y py-1 px-2"
         >
           <span className="w-12 h-1.5 rounded-full bg-(--color-cream)" />
           {isCollapsed && countLabel && (
-            <span className="text-sm text-(--color-deep) font-medium mt-1.5">
+            <span className="text-sm text-(--color-deep) font-semibold mt-2 whitespace-nowrap">
               {countLabel}
             </span>
           )}
         </button>
         <div className="flex-1 flex justify-end items-center">
-          <span
-            className="text-xs text-(--color-moss) opacity-70 px-1"
-            aria-hidden
-          >
-            {isCollapsed ? "▲" : "▼"}
-          </span>
+          {trailingAction ?? (
+            <span
+              className="text-xs text-(--color-moss) opacity-70 px-1"
+              aria-hidden
+            >
+              {isCollapsed ? "▲" : "▼"}
+            </span>
+          )}
         </div>
       </div>
 
