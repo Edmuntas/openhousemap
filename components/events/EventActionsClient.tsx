@@ -1,9 +1,8 @@
 "use client";
 
 import { Navigation2, MessageCircle, CalendarPlus } from "lucide-react";
-import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
+import { wazeDeepLink, whatsappShareLink, buildShareText } from "@/lib/waze";
 import { buildIcs } from "@/lib/ics";
-import { formatPrice } from "@/lib/utils";
 import type { ServerEvent } from "@/lib/event-server";
 
 interface Props {
@@ -12,7 +11,7 @@ interface Props {
 
 export default function EventActionsClient({ event }: Props) {
   const eventUrl = `https://openhousemap.online/e/${event.id}`;
-  const shareText = `Open House: ${event.address} | ${event.date} ${event.startTime}–${event.endTime} | ${formatPrice(event.price)}`;
+  const shareText = buildShareText(event);
 
   function downloadIcs() {
     const ics = buildIcs({

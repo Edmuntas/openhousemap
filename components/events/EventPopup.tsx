@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { formatPrice, formatPriceFull } from "@/lib/utils";
-import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
+import { formatPriceFull } from "@/lib/utils";
+import { wazeDeepLink, whatsappShareLink, buildShareText } from "@/lib/waze";
 import { visibilityOf } from "@/lib/visibility";
 import PhotoGallery from "@/components/ui/PhotoGallery";
 import RsvpButtons from "@/components/events/RsvpButtons";
@@ -49,7 +49,7 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
 
   const vis = visibilityOf(event.visibility);
   const eventUrl = `https://openhousemap.online/e/${event.id}`;
-  const shareText = `Open House: ${event.address} | ${event.date} ${event.startTime}–${event.endTime} | ${formatPrice(event.price)}`;
+  const shareText = buildShareText(event);
 
   const containerClass = isMobile
     ? "fixed inset-x-0 bottom-0 z-[2000] bg-(--surface) rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up pb-safe"
