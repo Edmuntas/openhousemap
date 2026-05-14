@@ -112,22 +112,28 @@ export default function DashboardClient() {
       <header className="space-y-3 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
         <div className="flex items-baseline gap-2.5 min-w-0 flex-wrap">
           <span className="text-sm text-(--color-moss) font-medium shrink-0">שלום,</span>
-          <h1
-            dir="auto"
-            className="text-2xl md:text-3xl font-[var(--font-display)] font-bold text-(--color-deep) leading-tight tracking-tight truncate"
+          <Link
+            href="/dashboard/profile"
+            aria-label="עריכת פרופיל ולוגו"
+            className="group inline-flex items-baseline gap-2 min-w-0 hover:opacity-80 transition-opacity"
           >
-            {displayName}
-          </h1>
-          {claims?.admin && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-gold)/25 text-(--color-deep) rounded-full text-[11px] font-semibold shrink-0">
-              <Award className="w-3 h-3" aria-hidden /> admin
-            </span>
-          )}
-          {!claims?.admin && claims?.verified && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-sage)/40 text-(--color-deep) rounded-full text-[11px] font-semibold shrink-0">
-              <CheckCircle2 className="w-3 h-3" aria-hidden /> מאומת
-            </span>
-          )}
+            <h1
+              dir="auto"
+              className="text-2xl md:text-3xl font-[var(--font-display)] font-bold text-(--color-deep) leading-tight tracking-tight truncate"
+            >
+              {displayName}
+            </h1>
+            {claims?.admin && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-gold)/25 text-(--color-deep) rounded-full text-[11px] font-semibold shrink-0">
+                <Award className="w-3 h-3" aria-hidden /> admin
+              </span>
+            )}
+            {!claims?.admin && claims?.verified && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-sage)/40 text-(--color-deep) rounded-full text-[11px] font-semibold shrink-0">
+                <CheckCircle2 className="w-3 h-3" aria-hidden /> מאומת
+              </span>
+            )}
+          </Link>
         </div>
         {/* Mobile: symmetric distribution — logout (RTL start = right),
             Open House primary CTA centered, map (RTL end = left).

@@ -38,6 +38,11 @@ export interface RealtorSnapshot {
   surname: string;
   officeName: string;
   licenseNumber: string;
+  // Office branding — denormalized at event creation so reads don't need
+  // to JOIN the users collection. If realtor updates logo later, older
+  // events keep the old snapshot until re-published.
+  logoUrl?: string | null;
+  officeBrandColor?: string | null;
 }
 
 export interface OpenHouseEvent {

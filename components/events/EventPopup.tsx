@@ -152,10 +152,25 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
           </p>
         )}
 
-        <div className="border-t border-(--color-cream) pt-3 text-xs text-(--color-moss)">
-          {event.realtorSnapshot.name} {event.realtorSnapshot.surname} ·{" "}
-          {event.realtorSnapshot.officeName} · רישיון{" "}
-          {event.realtorSnapshot.licenseNumber}
+        <div className="border-t border-(--color-cream) pt-3 flex items-center gap-2.5">
+          {event.realtorSnapshot.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={event.realtorSnapshot.logoUrl}
+              alt={event.realtorSnapshot.officeName || "לוגו משרד"}
+              className="w-9 h-9 rounded-full object-contain bg-(--color-ivory) ring-1 ring-(--color-moss)/15 shrink-0"
+            />
+          ) : null}
+          <div className="text-xs text-(--color-moss) leading-snug min-w-0">
+            <div className="font-semibold text-(--color-deep)">
+              {event.realtorSnapshot.name} {event.realtorSnapshot.surname}
+            </div>
+            <div className="truncate">
+              {event.realtorSnapshot.officeName}
+              {" · "}רישיון{" "}
+              <span dir="ltr">{event.realtorSnapshot.licenseNumber}</span>
+            </div>
+          </div>
         </div>
 
         <RsvpButtons eventId={event.id} />

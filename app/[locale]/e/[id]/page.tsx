@@ -160,17 +160,32 @@ export default async function EventDetailPage({
         </section>
       )}
 
-      <section className="border-t border-(--color-cream) pt-5 text-sm text-(--color-deep) space-y-2">
-        <p className="inline-flex items-center gap-2 font-semibold">
-          <User className="w-4 h-4 text-(--color-moss)" />
-          {event.realtorSnapshot.name} {event.realtorSnapshot.surname}
-        </p>
-        <p className="inline-flex items-center gap-2 text-(--color-moss)">
-          <Briefcase className="w-3.5 h-3.5" />
-          {event.realtorSnapshot.officeName}
-          <BadgeCheck className="w-3.5 h-3.5 ms-2" />
-          רישיון <span dir="ltr">{event.realtorSnapshot.licenseNumber}</span>
-        </p>
+      <section className="border-t border-(--color-cream) pt-5 flex items-center gap-4">
+        {event.realtorSnapshot.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={event.realtorSnapshot.logoUrl}
+            alt={event.realtorSnapshot.officeName || "לוגו משרד"}
+            className="w-14 h-14 rounded-2xl object-contain bg-(--color-ivory) ring-1 ring-(--color-moss)/15 shrink-0"
+            style={
+              event.realtorSnapshot.officeBrandColor
+                ? { boxShadow: `0 0 0 2px ${event.realtorSnapshot.officeBrandColor}33` }
+                : undefined
+            }
+          />
+        ) : null}
+        <div className="text-sm text-(--color-deep) space-y-1.5 min-w-0">
+          <p className="inline-flex items-center gap-2 font-semibold">
+            <User className="w-4 h-4 text-(--color-moss)" />
+            {event.realtorSnapshot.name} {event.realtorSnapshot.surname}
+          </p>
+          <p className="inline-flex items-center gap-2 text-(--color-moss)">
+            <Briefcase className="w-3.5 h-3.5" />
+            {event.realtorSnapshot.officeName}
+            <BadgeCheck className="w-3.5 h-3.5 ms-2" />
+            רישיון <span dir="ltr">{event.realtorSnapshot.licenseNumber}</span>
+          </p>
+        </div>
       </section>
 
       <EventActionsClient event={event} />

@@ -34,6 +34,23 @@ interface TestRealtor {
   officeName: string;
   licenseNumber: string;
   phone: string;
+  /** Brand accent — visible on detail page logo ring + share cards */
+  officeBrandColor: string;
+}
+
+// Placeholder logo from ui-avatars.com using the office initial + a
+// readable brand color background. Replaced by real PNG when the realtor
+// uploads via /dashboard/profile.
+function placeholderLogo(name: string, hexBg: string): string {
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const bg = hexBg.replace("#", "");
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${bg}&color=fff&size=256&font-size=0.45&bold=true&format=png`;
 }
 
 const REALTORS: TestRealtor[] = [
@@ -45,6 +62,7 @@ const REALTORS: TestRealtor[] = [
     officeName: "Cohen Realty",
     licenseNumber: "12345",
     phone: "+972501111111",
+    officeBrandColor: "#4A6E30",
   },
   {
     email: "david.levi@openhousemap.test",
@@ -54,6 +72,7 @@ const REALTORS: TestRealtor[] = [
     officeName: "Re/Max Star",
     licenseNumber: "23456",
     phone: "+972502222222",
+    officeBrandColor: "#A04848",
   },
   {
     email: "ruth.mizrahi@openhousemap.test",
@@ -63,6 +82,7 @@ const REALTORS: TestRealtor[] = [
     officeName: "Anglo-Saxon",
     licenseNumber: "34567",
     phone: "+972503333333",
+    officeBrandColor: "#2E4E1A",
   },
   {
     email: "yael.avrahami@openhousemap.test",
@@ -72,6 +92,7 @@ const REALTORS: TestRealtor[] = [
     officeName: "Open Doors",
     licenseNumber: "22222",
     phone: "+972504444444",
+    officeBrandColor: "#EAA830",
   },
   {
     email: "avi.israeli@openhousemap.test",
@@ -81,6 +102,7 @@ const REALTORS: TestRealtor[] = [
     officeName: "TLV Properties",
     licenseNumber: "55555",
     phone: "+972505555555",
+    officeBrandColor: "#3D6E78",
   },
   {
     email: "merav.peri@openhousemap.test",
@@ -90,6 +112,7 @@ const REALTORS: TestRealtor[] = [
     officeName: "Group 7 Real Estate",
     licenseNumber: "77777",
     phone: "+972506666666",
+    officeBrandColor: "#7A3D6E",
   },
 ];
 
@@ -138,6 +161,8 @@ async function ensureRealtor(r: TestRealtor): Promise<string> {
       phone: r.phone,
       officeName: r.officeName,
       licenseNumber: r.licenseNumber,
+      logoUrl: placeholderLogo(r.officeName, r.officeBrandColor),
+      officeBrandColor: r.officeBrandColor,
       role: "realtor",
       verificationStatus: "verified",
       verified: true,

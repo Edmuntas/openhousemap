@@ -386,6 +386,8 @@ export default function CreateEventClient() {
           surname: userData.surname ?? "",
           officeName: userData.officeName ?? "",
           licenseNumber: userData.licenseNumber ?? "",
+          logoUrl: userData.logoUrl ?? null,
+          officeBrandColor: userData.officeBrandColor ?? null,
         },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),

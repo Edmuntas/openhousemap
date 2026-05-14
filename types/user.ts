@@ -17,6 +17,13 @@ export interface UserProfile {
   verificationStatus: VerificationStatus;
   verified: boolean;
   licenseVerifiedAt?: Timestamp;
+  // Office branding — surfaces on event popup/detail and share cards.
+  // Logo stored at /users/{uid}/logo in Firebase Storage; logoUrl is the
+  // public download URL (medium variant from Resize Extension if available).
+  logoUrl?: string | null;
+  // Optional brand accent (hex like "#4A6E30") — used as outline / accent on
+  // share cards. Falls back to --color-moss when null.
+  officeBrandColor?: string | null;
   language: Language;
   emailOptIn: boolean;
   emailOptInDate?: Timestamp;
