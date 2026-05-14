@@ -24,6 +24,20 @@ export const metadata: Metadata = {
   applicationName: "OpenHouse Map",
   authors: [{ name: "AdmontREM" }],
   manifest: "/manifest.json",
+  openGraph: {
+    type: "website",
+    locale: "he_IL",
+    alternateLocale: ["en_US", "ru_RU"],
+    siteName: "OpenHouse Map",
+    title: "OpenHouse Map — כל הבתים הפתוחים במקום אחד",
+    description: "מפת בתים פתוחים ארצית למתווכים בישראל. All Open Houses — In One Place.",
+    url: "https://openhousemap.online",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OpenHouse Map — כל הבתים הפתוחים במקום אחד",
+    description: "מפת בתים פתוחים ארצית למתווכים בישראל",
+  },
 };
 
 export const viewport: Viewport = {
