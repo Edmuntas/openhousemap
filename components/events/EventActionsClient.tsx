@@ -89,18 +89,25 @@ function ShareCardModal({
   eventId: string;
   onClose: () => void;
 }) {
-  const formats: { id: "square" | "story" | "og"; label: string; aspect: string }[] = [
-    { id: "square", label: "Instagram / Facebook", aspect: "aspect-square" },
-    { id: "story", label: "WhatsApp Status / Stories", aspect: "aspect-[9/16]" },
-    { id: "og", label: "Link preview (WhatsApp)", aspect: "aspect-[1200/630]" },
+  const [loaded, setLoaded] = useState<Record<string, boolean>>({});
+  const [errored, setErrored] = useState<Record<string, boolean>>({});
+  const formats: {
+    id: "square" | "story" | "og";
+    label: string;
+    boxClass: string;
+  }[] = [
+    { id: "square", label: "Instagram / Facebook", boxClass: "w-24 h-24" },
+    { id: "story", label: "WhatsApp Status / Stories", boxClass: "w-[54px] h-24" },
+    { id: "og", label: "Link preview (WhatsApp)", boxClass: "w-[183px] h-24" },
   ];
 
   function downloadFormat(format: "square" | "story" | "og") {
-    const url = `/api/share-card/${eventId}?format=${format}&download=1`;
+    const url = `/api/share-card/${eventId}?format=${format}`;
     const a = document.createElement("a");
     a.href = url;
     a.download = `openhouse-${eventId}-${format}.png`;
     a.target = "_blank";
+    a.rel = "noopener";
     a.click();
   }
 
@@ -133,35 +140,54 @@ function ShareCardModal({
         </header>
 
         <div className="grid gap-3">
-          {formats.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => downloadFormat(f.id)}
-              className="group flex items-stretch gap-3 bg-(--color-cream)/55 ring-1 ring-(--color-moss)/10 hover:ring-(--color-moss)/30 hover:bg-(--color-cream) rounded-2xl p-3 transition-all text-right"
-            >
-              <div
-                className={`relative ${f.aspect} h-24 rounded-xl overflow-hidden bg-(--color-deep) shrink-0`}
+          {formats.map((f) => {
+            const isLoaded = loaded[f.id];
+            const isErrored = errored[f.id];
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => downloadFormat(f.id)}
+                className="group flex items-stretch gap-3 bg-(--color-cream)/55 ring-1 ring-(--color-moss)/10 hover:ring-(--color-moss)/30 hover:bg-(--color-cream) rounded-2xl p-3 transition-all text-right"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/share-card/${eventId}?format=${f.id}`}
-                  alt={f.label}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <div className="text-sm font-semibold text-(--color-deep)">
-                  {f.label}
+                <div
+                  className={`relative ${f.boxClass} rounded-xl overflow-hidden bg-(--color-deep)/15 shrink-0 ring-1 ring-(--color-moss)/15`}
+                >
+                  {!isLoaded && !isErrored && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[10px] text-(--color-moss)/70 font-medium animate-pulse">
+                        טוען...
+                      </span>
+                    </div>
+                  )}
+                  {isErrored && (
+                    <div className="absolute inset-0 flex items-center justify-center px-1">
+                      <span className="text-[10px] text-(--vis-red) font-medium text-center">
+                        תקלה
+                      </span>
+                    </div>
+                  )}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/share-card/${eventId}?format=${f.id}`}
+                    alt={f.label}
+                    className={`w-full h-full object-cover transition-opacity ${isLoaded ? "opacity-100" : "opacity-0"}`}
+                    onLoad={() => setLoaded((p) => ({ ...p, [f.id]: true }))}
+                    onError={() => setErrored((p) => ({ ...p, [f.id]: true }))}
+                  />
                 </div>
-                <div className="text-xs text-(--color-moss) mt-0.5">
-                  לחץ להורדה
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <div className="text-sm font-semibold text-(--color-deep)">
+                    {f.label}
+                  </div>
+                  <div className="text-xs text-(--color-moss) mt-0.5">
+                    {isLoaded ? "לחץ להורדה" : "טוען תצוגה מקדימה..."}
+                  </div>
                 </div>
-              </div>
-              <ImageDown className="w-4 h-4 text-(--color-moss) self-center shrink-0" />
-            </button>
-          ))}
+                <ImageDown className="w-4 h-4 text-(--color-moss) self-center shrink-0" />
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
