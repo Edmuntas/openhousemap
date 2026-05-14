@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import { wazeDeepLink, whatsappShareLink } from "@/lib/waze";
+import { visibilityOf } from "@/lib/visibility";
 import PhotoGallery from "@/components/ui/PhotoGallery";
 import RsvpButtons from "@/components/events/RsvpButtons";
 import FavouriteButton from "@/components/events/FavouriteButton";
@@ -46,12 +47,7 @@ export default function EventPopup({ event, onClose }: EventPopupProps) {
 
   if (!event) return null;
 
-  const visibilityLabel: Record<string, { label: string; color: string }> = {
-    public: { label: "🟢 פתוח לציבור", color: "#4A9B5C" },
-    mixed: { label: "🟡 משולב", color: "#D4980C" },
-    colleagues: { label: "🔴 לקולגות בלבד", color: "#C04848" },
-  };
-  const vis = visibilityLabel[event.visibility] ?? visibilityLabel.public;
+  const vis = visibilityOf(event.visibility);
   const eventUrl = `https://openhousemap.online/e/${event.id}`;
   const shareText = `Open House: ${event.address} | ${event.date} ${event.startTime}–${event.endTime} | ${formatPrice(event.price)}`;
 

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getEventById } from "@/lib/event-server";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
+import { visibilityOf } from "@/lib/visibility";
 import EventActionsClient from "@/components/events/EventActionsClient";
 import EventOwnerActions from "@/components/events/EventOwnerActions";
 import PhotoGallery from "@/components/ui/PhotoGallery";
@@ -69,12 +70,7 @@ export default async function EventDetailPage({
   const event = await getEventById(id);
   if (!event) notFound();
 
-  const visibilityLabel: Record<string, { label: string; color: string }> = {
-    public: { label: "🟢 פתוח לציבור", color: "#4A9B5C" },
-    mixed: { label: "🟡 משולב", color: "#D4980C" },
-    colleagues: { label: "🔴 קולגות", color: "#C04848" },
-  };
-  const vis = visibilityLabel[event.visibility] ?? visibilityLabel.public;
+  const vis = visibilityOf(event.visibility);
 
   return (
     <main className="max-w-3xl mx-auto px-4 pb-10 space-y-6 pt-safe pl-safe pr-safe">

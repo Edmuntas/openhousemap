@@ -78,11 +78,20 @@ export default function MapHomeClient() {
     });
   }, [filtered, bounds]);
 
+  // Display the events that are CURRENTLY ON THE MAP. As the user pans/zooms
+  // the sidebar list and count update live. When map shows the whole country
+  // visible === filtered, so the user sees the full result set; zoom into
+  // Haifa and the list shrinks to just Haifa events.
   const sidebarContent = (
     <>
       <EventFilters value={filters} onChange={setFilters} />
+      <div className="px-3 pt-2 pb-1 text-xs font-semibold text-(--color-moss) tracking-wide">
+        {visible.length === filtered.length
+          ? `${visible.length} בתים פתוחים`
+          : `${visible.length} באזור · ${filtered.length} בסך הכל`}
+      </div>
       <EventList
-        events={filtered}
+        events={visible}
         loading={loading}
         selectedId={selected?.id ?? null}
         onSelect={setSelected}
@@ -133,6 +142,8 @@ export default function MapHomeClient() {
       <main className="fixed inset-0 overflow-hidden">
         <div className="absolute inset-0" onClickCapture={handleMapTap}>
           <MapContainer
+            events={filtered}
+            loading={loading}
             onEventSelect={setSelected}
             selectedEvent={selected}
             onBoundsChange={setBounds}
@@ -253,7 +264,13 @@ export default function MapHomeClient() {
       </aside>
 
       <section className="flex-1 relative">
-        <MapContainer onEventSelect={setSelected} selectedEvent={selected} />
+        <MapContainer
+          events={filtered}
+          loading={loading}
+          onEventSelect={setSelected}
+          selectedEvent={selected}
+          onBoundsChange={setBounds}
+        />
         <EventPopup event={selected} onClose={() => setSelected(null)} />
       </section>
     </main>

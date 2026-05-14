@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MapIcon } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import type { EventWithId } from "@/hooks/useEvents";
 
@@ -33,9 +34,11 @@ export default function EventList({
   if (events.length === 0) {
     return (
       <div className="p-8 text-center text-(--color-moss) flex flex-col items-center gap-3">
-        <span className="text-4xl">🏠</span>
-        <p className="font-medium">אין בתים פתוחים פעילים כרגע</p>
-        <p className="text-sm opacity-70">בקרוב יופיעו אירועים חדשים על המפה</p>
+        <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-(--color-cream) text-(--color-moss)">
+          <MapIcon className="w-6 h-6" aria-hidden />
+        </span>
+        <p className="font-medium">אין בתים פתוחים פעילים באזור</p>
+        <p className="text-sm opacity-70">הזיז את המפה או הקטן את הזום</p>
       </div>
     );
   }

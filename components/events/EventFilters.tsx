@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Building2, Home, Star, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+
+import type { LucideIcon } from "lucide-react";
 
 export interface FilterState {
   city: string;
@@ -21,10 +24,14 @@ export default function EventFilters({ value, onChange }: EventFiltersProps) {
   const router = useRouter();
   const { user } = useAuth();
 
-  const propertyTypes: { value: FilterState["propertyType"]; label: string }[] = [
-    { value: "all", label: "הכול" },
-    { value: "apartment", label: "🏢 דירה" },
-    { value: "house", label: "🏠 בית" },
+  const propertyTypes: {
+    value: FilterState["propertyType"];
+    label: string;
+    Icon?: LucideIcon;
+  }[] = [
+    { value: "all", label: "הכול", Icon: Sparkles },
+    { value: "apartment", label: "דירה", Icon: Building2 },
+    { value: "house", label: "בית", Icon: Home },
   ];
 
   const timeRanges: { value: FilterState["timeRange"]; label: string }[] = [
@@ -60,12 +67,13 @@ export default function EventFilters({ value, onChange }: EventFiltersProps) {
             key={pt.value}
             type="button"
             onClick={() => onChange({ ...value, propertyType: pt.value })}
-            className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
               value.propertyType === pt.value
                 ? "bg-(--color-moss) text-(--color-ivory)"
                 : "bg-(--color-cream) text-(--color-deep) hover:bg-(--color-sage)/40"
             }`}
           >
+            {pt.Icon && <pt.Icon className="w-3.5 h-3.5" aria-hidden />}
             {pt.label}
           </button>
         ))}
@@ -73,13 +81,17 @@ export default function EventFilters({ value, onChange }: EventFiltersProps) {
           type="button"
           onClick={toggleFavourites}
           aria-pressed={value.onlyFavourites}
-          className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
             value.onlyFavourites
               ? "bg-(--color-gold) text-(--color-deep) font-medium"
               : "bg-(--color-cream) text-(--color-deep) hover:bg-(--color-gold)/40"
           }`}
         >
-          {value.onlyFavourites ? "★" : "☆"} מועדפים
+          <Star
+            className={`w-3.5 h-3.5 ${value.onlyFavourites ? "fill-(--color-deep)" : ""}`}
+            aria-hidden
+          />
+          מועדפים
         </button>
       </div>
       <div className="flex gap-1">

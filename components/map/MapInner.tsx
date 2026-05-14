@@ -5,16 +5,12 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import type * as L from "leaflet";
-import { useEvents, type EventWithId } from "@/hooks/useEvents";
+import type { EventWithId } from "@/hooks/useEvents";
 import { formatPrice } from "@/lib/utils";
+import { VISIBILITY_COLOR } from "@/lib/visibility";
 
 const ISRAEL_CENTER: [number, number] = [31.7683, 35.2137];
 const DEFAULT_ZOOM = 8;
-const VISIBILITY_COLOR: Record<string, string> = {
-  public: "#4A9B5C",
-  mixed: "#D4980C",
-  colleagues: "#C04848",
-};
 
 export interface ViewportBounds {
   north: number;
@@ -24,6 +20,10 @@ export interface ViewportBounds {
 }
 
 interface MapInnerProps {
+  /** Events to render as pins. Parent owns the data so we don't open a
+   *  duplicate Firestore listener — MapHomeClient already has useEvents(). */
+  events: EventWithId[];
+  loading?: boolean;
   onEventSelect?: (event: EventWithId) => void;
   selectedEvent?: EventWithId | null;
   onBoundsChange?: (bounds: ViewportBounds) => void;
@@ -41,6 +41,8 @@ interface MapState {
 }
 
 export default function MapInner({
+  events,
+  loading,
   onEventSelect,
   selectedEvent,
   onBoundsChange,
@@ -48,7 +50,6 @@ export default function MapInner({
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapState, setMapState] = useState<MapState | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
-  const { events, loading } = useEvents();
   const onBoundsChangeRef = useRef(onBoundsChange);
   onBoundsChangeRef.current = onBoundsChange;
 

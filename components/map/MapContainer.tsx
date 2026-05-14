@@ -18,18 +18,24 @@ const MapInner = dynamic(() => import("./MapInner"), {
 });
 
 interface MapContainerProps {
+  events: EventWithId[];
+  loading?: boolean;
   onEventSelect?: (event: EventWithId) => void;
   selectedEvent?: EventWithId | null;
   onBoundsChange?: (bounds: ViewportBounds) => void;
 }
 
 export default function MapContainer({
+  events,
+  loading,
   onEventSelect,
   selectedEvent,
   onBoundsChange,
 }: MapContainerProps) {
   return (
     <MapInner
+      events={events}
+      loading={loading}
       onEventSelect={onEventSelect}
       selectedEvent={selectedEvent}
       onBoundsChange={onBoundsChange}
