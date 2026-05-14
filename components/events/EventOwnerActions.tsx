@@ -45,10 +45,14 @@ export default function EventOwnerActions({
     setBusy("cancel");
     setError(null);
     try {
+      // NOTE: do NOT set mapVisible=false here. The Cloud Scheduler
+      // (functions/src/scheduler.ts → hideCancelledPins) removes the pin
+      // from the map 48h after cancellation. That grace period lets people
+      // who RSVPed see the cancelled banner on the pin. Killing mapVisible
+      // now would hide the cancellation signal too early.
       await updateDoc(doc(db, "events", eventId), {
         status: "cancelled",
         cancelledAt: serverTimestamp(),
-        mapVisible: false,
         updatedAt: serverTimestamp(),
       });
       router.refresh();

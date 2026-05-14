@@ -28,7 +28,12 @@ service firebase.storage {
       allow write: if (isVerifiedRealtor() || isAdmin())
         && request.resource.size < 10 * 1024 * 1024 // 10MB
         && isAllowedPhotoUpload();
-      allow delete: if isVerifiedRealtor() || isAdmin();
+      // Delete only by admin. Per-realtor scope-check is impossible from
+      // Storage rules alone (eventId ≠ uid). Realtors who need to remove
+      // photos on their own event should route through a Cloud Function
+      // that verifies Firestore ownership first. Closes a hole where any
+      // verified realtor could deleteObject() on /events/<otherRealtorId>/.
+      allow delete: if isAdmin();
     }
 
     // User avatars (future)

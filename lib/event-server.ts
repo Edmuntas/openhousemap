@@ -28,9 +28,26 @@ export async function getEventById(id: string): Promise<ServerEvent | null> {
     }
     return String(v);
   };
+  // Normalize known-optional nested shapes so SSR rendering can assume
+  // they're present. Older events created before the AI description Cloud
+  // Function ran can have `description` as undefined, and accessing
+  // `event.description.he` in a server component then throws a 500.
+  // Same for realtorSnapshot — keep it safe even on bad legacy docs.
+  const normalized = {
+    ...(data as OpenHouseEvent),
+    description: data.description ?? { he: "", en: "", ru: "" },
+    realtorSnapshot: data.realtorSnapshot ?? {
+      name: "",
+      surname: "",
+      officeName: "",
+      licenseNumber: "",
+    },
+    photos: Array.isArray(data.photos) ? data.photos : [],
+  };
+
   return {
     id: snap.id,
-    ...(data as OpenHouseEvent),
+    ...normalized,
     createdAt: toIso(data.createdAt),
     updatedAt: toIso(data.updatedAt),
   } as ServerEvent;
