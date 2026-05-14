@@ -12,5 +12,13 @@ export default createMiddleware({
 });
 
 export const config = {
-  matcher: ["/((?!api|_next|.*\\..*).*)"],
+  // Exclude:
+  // - api routes (server-only)
+  // - _next internals
+  // - Next.js metadata routes (opengraph-image, apple-icon, twitter-image, icon, sitemap, robots, manifest)
+  //   These have no file extension but must NOT pass through the locale router.
+  // - anything with a file extension (.css, .js, .png, .svg, .ico, etc.)
+  matcher: [
+    "/((?!api|_next|opengraph-image|twitter-image|apple-icon|icon|sitemap|robots|manifest|.*\\..*).*)",
+  ],
 };
