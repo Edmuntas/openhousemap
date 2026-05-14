@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEventRsvps } from "@/hooks/useRsvp";
 import { formatPrice } from "@/lib/utils";
 import type { EventWithId } from "@/hooks/useEvents";
+import EventOwnerActions from "@/components/events/EventOwnerActions";
 
 export default function DashboardEventCard({ event }: { event: EventWithId }) {
   const { items, loading } = useEventRsvps(event.id);
@@ -70,6 +71,15 @@ export default function DashboardEventCard({ event }: { event: EventWithId }) {
           )}
         </div>
       )}
+
+      <div className="px-4 pb-4">
+        <EventOwnerActions
+          eventId={event.id}
+          ownerId={event.ownerId}
+          status={event.status}
+          archiveStatus={event.archiveStatus}
+        />
+      </div>
     </li>
   );
 }

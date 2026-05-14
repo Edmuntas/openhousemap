@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getEventById } from "@/lib/event-server";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
 import EventActionsClient from "@/components/events/EventActionsClient";
+import EventOwnerActions from "@/components/events/EventOwnerActions";
 import PhotoGallery from "@/components/ui/PhotoGallery";
 import Footer from "@/components/layout/Footer";
 import {
@@ -189,6 +190,12 @@ export default async function EventDetailPage({
       </section>
 
       <EventActionsClient event={event} />
+      <EventOwnerActions
+        eventId={event.id}
+        ownerId={event.ownerId}
+        status={event.status}
+        archiveStatus={event.archiveStatus}
+      />
       <Footer variant="compact" />
     </main>
   );
