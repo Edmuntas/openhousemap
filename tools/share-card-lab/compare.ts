@@ -28,6 +28,7 @@ import { renderGeminiCard } from "./generators/gemini";
 import { renderOpenAiCard } from "./generators/openai";
 import { renderIdeogramCard } from "./generators/ideogram";
 import { renderLeonardoCard } from "./generators/leonardo";
+import { renderFalCard } from "./generators/fal";
 import type { EventInput, Generator } from "./types";
 
 const credsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
@@ -76,10 +77,48 @@ async function loadEvent(eventId: string): Promise<EventInput> {
 
 const ALL_GENERATORS: Generator[] = [
   { name: "baseline-vercel-og", label: "Vercel OG (baseline)", requires: [], run: renderBaselineCard },
-  { name: "gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image", requires: ["GOOGLE_AI_API_KEY"], run: renderGeminiCard },
-  { name: "gpt-image-1", label: "OpenAI gpt-image-1", requires: ["OPENAI_API_KEY"], run: renderOpenAiCard },
-  { name: "ideogram-3", label: "Ideogram 3.0", requires: ["IDEOGRAM_API_KEY"], run: renderIdeogramCard },
-  { name: "leonardo-phoenix", label: "Leonardo.ai Phoenix", requires: ["LEONARDO_API_KEY"], run: renderLeonardoCard },
+  // FAL.AI — single key, 6 models for direct comparison
+  {
+    name: "fal-flux-schnell",
+    label: "FAL · Flux Schnell ($0.003)",
+    requires: ["FAL_KEY"],
+    run: (e) => renderFalCard(e, { modelId: "fal-ai/flux/schnell", estimatedCost: 0.003 }),
+  },
+  {
+    name: "fal-flux-dev",
+    label: "FAL · Flux Dev ($0.025)",
+    requires: ["FAL_KEY"],
+    run: (e) => renderFalCard(e, { modelId: "fal-ai/flux/dev", estimatedCost: 0.025 }),
+  },
+  {
+    name: "fal-flux-pro-1.1",
+    label: "FAL · Flux Pro 1.1 ($0.04)",
+    requires: ["FAL_KEY"],
+    run: (e) => renderFalCard(e, { modelId: "fal-ai/flux-pro/v1.1", estimatedCost: 0.04 }),
+  },
+  {
+    name: "fal-recraft-v3",
+    label: "FAL · Recraft V3 ($0.04)",
+    requires: ["FAL_KEY"],
+    run: (e) => renderFalCard(e, { modelId: "fal-ai/recraft-v3", estimatedCost: 0.04 }),
+  },
+  {
+    name: "fal-ideogram-v3",
+    label: "FAL · Ideogram v3 ($0.06)",
+    requires: ["FAL_KEY"],
+    run: (e) => renderFalCard(e, { modelId: "fal-ai/ideogram/v3", estimatedCost: 0.06 }),
+  },
+  {
+    name: "fal-imagen4",
+    label: "FAL · Imagen 4 ($0.04)",
+    requires: ["FAL_KEY"],
+    run: (e) => renderFalCard(e, { modelId: "fal-ai/imagen4/preview", estimatedCost: 0.04 }),
+  },
+  // Direct API alternatives (separate keys)
+  { name: "gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image (direct)", requires: ["GOOGLE_AI_API_KEY"], run: renderGeminiCard },
+  { name: "gpt-image-1", label: "OpenAI gpt-image-1 (direct)", requires: ["OPENAI_API_KEY"], run: renderOpenAiCard },
+  { name: "ideogram-3", label: "Ideogram 3.0 (direct)", requires: ["IDEOGRAM_API_KEY"], run: renderIdeogramCard },
+  { name: "leonardo-phoenix", label: "Leonardo.ai Phoenix (direct)", requires: ["LEONARDO_API_KEY"], run: renderLeonardoCard },
 ];
 
 async function main() {

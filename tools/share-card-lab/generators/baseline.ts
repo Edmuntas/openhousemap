@@ -14,30 +14,42 @@ import type { EventInput, GeneratorOutput } from "../types";
 
 const SIZE = 1080;
 
-// Load Rubik Hebrew fonts from @fontsource/rubik (installed locally).
-// Hebrew subset is required so satori knows to render hebrew glyphs;
-// latin subset gives us numerals + brand name.
+// Load BOTH hebrew and latin Rubik subsets so satori finds a glyph for
+// every codepoint we throw at it. Hebrew subset covers hebrew letters,
+// latin subset covers digits + ₪ + brand name + brand URL. Satori picks
+// the right glyph per char automatically.
 let cachedFonts: { name: string; data: Buffer; weight: 500 | 700; style: "normal" }[] | null = null;
 async function loadFonts() {
   if (cachedFonts) return cachedFonts;
   const base = "node_modules/@fontsource/rubik/files";
-  // Use hebrew subset so the hebrew glyphs are present in the font data.
+  // Satori falls through the list per-glyph: it tries each font for a
+  // codepoint until it finds one that has it. So we register Latin FIRST
+  // (digits + ₪ + brand URL chars) then Hebrew (hebrew letters).
   const fonts: { name: string; data: Buffer; weight: 500 | 700; style: "normal" }[] = [
-    {
-      name: "Rubik",
-      data: readFileSync(join(process.cwd(), base, "rubik-hebrew-500-normal.woff")),
-      weight: 500,
-      style: "normal",
-    },
-    {
-      name: "Rubik",
-      data: readFileSync(join(process.cwd(), base, "rubik-hebrew-700-normal.woff")),
-      weight: 700,
-      style: "normal",
-    },
+    { name: "Rubik", data: readFileSync(join(process.cwd(), base, "rubik-latin-500-normal.woff")), weight: 500, style: "normal" },
+    { name: "Rubik", data: readFileSync(join(process.cwd(), base, "rubik-latin-700-normal.woff")), weight: 700, style: "normal" },
+    { name: "Rubik", data: readFileSync(join(process.cwd(), base, "rubik-hebrew-500-normal.woff")), weight: 500, style: "normal" },
+    { name: "Rubik", data: readFileSync(join(process.cwd(), base, "rubik-hebrew-700-normal.woff")), weight: 700, style: "normal" },
   ];
   cachedFonts = fonts;
   return fonts;
+}
+
+/**
+ * Fetch a remote image as a data URL so satori can embed it.
+ * Returns null if the image can't be fetched (logo missing / CORS / 404).
+ */
+async function urlToDataUrl(url: string | null): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const mime = res.headers.get("content-type") || "image/png";
+    const buf = Buffer.from(await res.arrayBuffer());
+    return `data:${mime};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
 }
 
 // Pre-reverse hebrew strings for Satori (it doesn't apply Unicode bidi)
@@ -59,8 +71,13 @@ export async function renderBaselineCard(event: EventInput): Promise<GeneratorOu
   void join;
   const fonts = await loadFonts();
   const brandColor = event.realtor.brandColor || "#4A6E30";
-  const photoUrl = event.photoUrl;
-  const logoUrl = event.realtor.logoUrl;
+  // Satori's <img> can't follow remote URLs in node — fetch + inline as data:
+  const [photoDataUrl, logoDataUrl] = await Promise.all([
+    urlToDataUrl(event.photoUrl),
+    urlToDataUrl(event.realtor.logoUrl),
+  ]);
+  const photoUrl = photoDataUrl;
+  const logoUrl = logoDataUrl;
 
   const jsx: React.ReactElement = {
     type: "div",
