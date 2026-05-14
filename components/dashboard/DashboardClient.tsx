@@ -16,7 +16,6 @@ import {
   Calendar,
   Star,
   Home as HomeIcon,
-  ChevronLeft,
   Award,
   CheckCircle2,
 } from "lucide-react";
@@ -105,46 +104,51 @@ export default function DashboardClient() {
 
   return (
     <main className="max-w-4xl mx-auto px-5 pt-6 pb-10 space-y-5">
-      {/* Header: greeting + name + role on one balanced row.
-          On narrow screens the action row drops below; on wider screens it
-          sits opposite. Name is text-2xl (was 4xl) so it doesn't dwarf the
-          rest of the chrome. */}
-      <header className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-sm text-(--color-moss) font-medium">שלום,</span>
-            <h1 className="text-2xl md:text-3xl font-[var(--font-display)] font-bold text-(--color-deep) leading-tight tracking-tight truncate">
-              {displayName}
-            </h1>
-            {claims?.admin && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-gold)/25 text-(--color-deep) rounded-full text-[11px] font-semibold">
-                <Award className="w-3 h-3" aria-hidden /> admin
-              </span>
-            )}
-            {!claims?.admin && claims?.verified && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-sage)/40 text-(--color-deep) rounded-full text-[11px] font-semibold">
-                <CheckCircle2 className="w-3 h-3" aria-hidden /> מאומת
-              </span>
-            )}
-          </div>
-        </div>
-        <nav className="flex items-center gap-1.5 flex-shrink-0" aria-label="פעולות חשבון">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 bg-(--color-cream) text-(--color-deep) px-3 py-2 rounded-full text-sm font-medium hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+      {/* Header — vertical stack on mobile, side-by-side on desktop.
+          On narrow screens identity and actions get their own row so neither
+          gets cramped. On wider screens they share a row but with explicit
+          flex-1 + flex-shrink-0 so the name can truncate gracefully on the
+          *trailing* end (dir=ltr on Latin name, dir-aware ellipsis). */}
+      <header className="space-y-3 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
+        <div className="flex items-baseline gap-2.5 min-w-0 flex-wrap">
+          <span className="text-sm text-(--color-moss) font-medium shrink-0">שלום,</span>
+          <h1
+            dir="auto"
+            className="text-2xl md:text-3xl font-[var(--font-display)] font-bold text-(--color-deep) leading-tight tracking-tight truncate"
           >
-            <MapIcon className="w-4 h-4" aria-hidden />
-            <span className="hidden sm:inline">חזרה למפה</span>
-          </Link>
+            {displayName}
+          </h1>
+          {claims?.admin && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-gold)/25 text-(--color-deep) rounded-full text-[11px] font-semibold shrink-0">
+              <Award className="w-3 h-3" aria-hidden /> admin
+            </span>
+          )}
+          {!claims?.admin && claims?.verified && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-(--color-sage)/40 text-(--color-deep) rounded-full text-[11px] font-semibold shrink-0">
+              <CheckCircle2 className="w-3 h-3" aria-hidden /> מאומת
+            </span>
+          )}
+        </div>
+        <nav
+          className="flex items-center justify-end gap-2 shrink-0"
+          aria-label="פעולות חשבון"
+        >
           {isRealtor && (
             <Link
               href="/create"
-              className="inline-flex items-center gap-1.5 bg-(--color-deep) text-(--color-ivory) px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-(--color-forest) transition-colors active:scale-[0.97]"
+              className="inline-flex items-center gap-1.5 bg-(--color-moss) text-(--color-ivory) px-4 h-10 rounded-full text-sm font-semibold hover:bg-(--color-forest) transition-colors active:scale-[0.97] shadow-sm shadow-(--color-moss)/20"
             >
               <Plus className="w-4 h-4" aria-hidden />
               Open House
             </Link>
           )}
+          <Link
+            href="/"
+            aria-label="חזרה למפה"
+            className="inline-flex items-center justify-center bg-(--color-cream) text-(--color-deep) w-10 h-10 rounded-full hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+          >
+            <MapIcon className="w-4 h-4" aria-hidden />
+          </Link>
           <button
             type="button"
             onClick={async () => {
@@ -152,7 +156,7 @@ export default function DashboardClient() {
               router.push("/");
             }}
             aria-label="התנתק"
-            className="inline-flex items-center justify-center bg-(--color-cream) text-(--color-deep) w-9 h-9 rounded-full hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
+            className="inline-flex items-center justify-center bg-(--color-cream) text-(--color-deep) w-10 h-10 rounded-full hover:bg-(--color-sage)/40 transition-colors active:scale-[0.97]"
           >
             <LogOut className="w-4 h-4" aria-hidden />
           </button>
@@ -268,34 +272,28 @@ function AttendingCard({ event, status }: { event: EventWithId; status: string }
     <li>
       <Link
         href={`/e/${event.id}`}
-        className="group flex items-center gap-3 p-3.5 rounded-2xl bg-(--color-cream)/60 ring-1 ring-(--color-moss)/8 hover:bg-(--color-cream) hover:ring-(--color-moss)/20 transition-all"
+        className="block p-4 rounded-2xl bg-(--color-cream)/55 ring-1 ring-(--color-moss)/8 hover:bg-(--color-cream) hover:ring-(--color-moss)/25 transition-all space-y-1"
       >
-        <div className="flex-1 min-w-0 space-y-0.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <div className="font-[var(--font-display)] text-(--color-deep) font-bold text-lg leading-none tracking-tight">
-              {formatPrice(event.price)}
-            </div>
-            <span
-              className="text-[11px] font-semibold px-2 py-0.5 rounded-full tracking-wide"
-              style={{ background: `${s.color}22`, color: s.color }}
-            >
-              {s.label}
-            </span>
+        <div className="flex items-baseline justify-between gap-3">
+          <div className="font-[var(--font-display)] text-(--color-deep) font-bold text-lg leading-none tracking-tight">
+            {formatPrice(event.price)}
           </div>
-          <div className="text-sm text-(--color-deep) font-medium truncate">
-            {event.address}
-          </div>
-          <div className="text-xs text-(--color-moss)">
-            <span dir="ltr">{event.date}</span>
-            {" · "}
-            <span dir="ltr">{event.startTime}–{event.endTime}</span>
-            {event.rooms != null && ` · ${event.rooms} חד׳`}
-          </div>
+          <span
+            className="text-[11px] font-semibold px-2 py-0.5 rounded-full tracking-wide shrink-0"
+            style={{ background: `${s.color}22`, color: s.color }}
+          >
+            {s.label}
+          </span>
         </div>
-        <ChevronLeft
-          className="w-4 h-4 text-(--color-moss)/60 group-hover:text-(--color-moss) flex-shrink-0 transition-colors"
-          aria-hidden
-        />
+        <div className="text-sm text-(--color-deep) font-medium truncate">
+          {event.address}
+        </div>
+        <div className="text-xs text-(--color-moss)">
+          <span dir="ltr">{event.date}</span>
+          {" · "}
+          <span dir="ltr">{event.startTime}–{event.endTime}</span>
+          {event.rooms != null && ` · ${event.rooms} חד׳`}
+        </div>
       </Link>
     </li>
   );
@@ -324,32 +322,26 @@ function FavouriteList({
         <li key={event.id}>
           <Link
             href={`/e/${event.id}`}
-            className="group flex items-center gap-3 p-3.5 rounded-2xl bg-(--color-cream)/60 ring-1 ring-(--color-moss)/8 hover:bg-(--color-cream) hover:ring-(--color-moss)/20 transition-all"
+            className="block p-4 rounded-2xl bg-(--color-cream)/55 ring-1 ring-(--color-moss)/8 hover:bg-(--color-cream) hover:ring-(--color-moss)/25 transition-all space-y-1"
           >
-            <div className="flex-1 min-w-0 space-y-0.5">
-              <div className="flex items-baseline justify-between gap-2">
-                <div className="font-[var(--font-display)] text-(--color-deep) font-bold text-lg leading-none tracking-tight">
-                  {formatPrice(event.price)}
-                </div>
-                <Star
-                  className="w-4 h-4 text-(--color-gold) fill-(--color-gold)"
-                  aria-hidden
-                />
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="font-[var(--font-display)] text-(--color-deep) font-bold text-lg leading-none tracking-tight">
+                {formatPrice(event.price)}
               </div>
-              <div className="text-sm text-(--color-deep) font-medium truncate">
-                {event.address}
-              </div>
-              <div className="text-xs text-(--color-moss)">
-                <span dir="ltr">{event.date}</span>
-                {" · "}
-                <span dir="ltr">{event.startTime}–{event.endTime}</span>
-                {event.rooms != null && ` · ${event.rooms} חד׳`}
-              </div>
+              <Star
+                className="w-4 h-4 text-(--color-gold) fill-(--color-gold) shrink-0"
+                aria-hidden
+              />
             </div>
-            <ChevronLeft
-              className="w-4 h-4 text-(--color-moss)/60 group-hover:text-(--color-moss) flex-shrink-0 transition-colors"
-              aria-hidden
-            />
+            <div className="text-sm text-(--color-deep) font-medium truncate">
+              {event.address}
+            </div>
+            <div className="text-xs text-(--color-moss)">
+              <span dir="ltr">{event.date}</span>
+              {" · "}
+              <span dir="ltr">{event.startTime}–{event.endTime}</span>
+              {event.rooms != null && ` · ${event.rooms} חד׳`}
+            </div>
           </Link>
         </li>
       ))}
