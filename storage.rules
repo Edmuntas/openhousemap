@@ -12,22 +12,25 @@ service firebase.storage {
     }
 
     // Event photos — verified realtors upload to their event paths.
-    // Allow only web-displayable photo formats up to 10MB. Client validates
-    // first and shows a friendly Hebrew message; this rule is the security
-    // backstop.
-    function isAllowedPhotoUpload() {
-      return (request.resource.contentType == 'image/jpeg'
+    // Allow only web-displayable photo formats up to 10MB.
+    // MIME check is in a function (no path vars), filename extension check
+    // stays inline in the match block where `fileName` is actually bound.
+    // Previously this function tried to read `fileName` and silently
+    // returned undefined (out-of-scope), which Firebase emits as a
+    // compiler warning and made the rule unstable.
+    function isAllowedPhotoMime() {
+      return request.resource.contentType == 'image/jpeg'
         || request.resource.contentType == 'image/png'
         || request.resource.contentType == 'image/heic'
         || request.resource.contentType == 'image/heif'
-        || request.resource.contentType == 'image/webp')
-        && !fileName.matches('.*\\.(dng|DNG|raw|RAW|cr2|CR2|nef|NEF|arw|ARW)');
+        || request.resource.contentType == 'image/webp';
     }
     match /events/{eventId}/{fileName} {
       allow read: if true; // public read for map popups, OG images
       allow write: if (isVerifiedRealtor() || isAdmin())
         && request.resource.size < 10 * 1024 * 1024 // 10MB
-        && isAllowedPhotoUpload();
+        && isAllowedPhotoMime()
+        && !fileName.matches('.*\\.(dng|DNG|raw|RAW|cr2|CR2|nef|NEF|arw|ARW)');
       // Delete only by admin. Per-realtor scope-check is impossible from
       // Storage rules alone (eventId ≠ uid). Realtors who need to remove
       // photos on their own event should route through a Cloud Function
