@@ -18,6 +18,7 @@ import { Loader2, X } from "lucide-react";
 import { httpsCallable, getFunctions } from "firebase/functions";
 import ngeohash from "ngeohash";
 import { db, auth, storage, app } from "@/lib/firebase";
+import { buildPhotoSet } from "@/lib/photo";
 import { useAuth } from "@/hooks/useAuth";
 import type {
   PropertyType,
@@ -277,9 +278,7 @@ export default function CreateEventClient() {
             async () => {
               try {
                 const url = await getDownloadURL(r);
-                setPhotos((prev) =>
-                  [...prev, { full: url, medium: url, thumb: url }].slice(0, 10)
-                );
+                setPhotos((prev) => [...prev, buildPhotoSet(url)].slice(0, 10));
               } catch (e) {
                 console.error("[upload getURL]", id, e);
               }

@@ -29,6 +29,7 @@ import {
   buildShareText,
 } from "@/lib/waze";
 import { buildIcs } from "@/lib/ics";
+import { previewUrlFor } from "@/lib/photo";
 import type { ServerEvent } from "@/lib/event-server";
 
 interface Props {
@@ -85,13 +86,7 @@ export default function EventActionsClient({ event }: Props) {
     }
     setBusy(true);
     try {
-      // Same derive trick as the OG metadata: medium slot currently mirrors
-      // full, so rewrite to the resize-ext-generated _800x600.jpg.
-      const photo = event.photos[0];
-      const photoUrl =
-        photo?.medium && photo.medium !== photo.full
-          ? photo.medium
-          : photo?.full?.replace(/\.(jpe?g|png|webp)(\?|$)/i, "_800x600.$1$2");
+      const photoUrl = previewUrlFor(event.photos[0]);
       let files: File[] | undefined;
       if (photoUrl && nav.canShare) {
         try {

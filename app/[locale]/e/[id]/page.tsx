@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getEventById } from "@/lib/event-server";
 import { formatPrice, formatPriceFull } from "@/lib/utils";
+import { previewUrlFor } from "@/lib/photo";
 import { visibilityOf } from "@/lib/visibility";
 import EventActionsClient from "@/components/events/EventActionsClient";
 import EventOwnerActions from "@/components/events/EventOwnerActions";
@@ -41,12 +42,11 @@ export async function generateMetadata({
   const sizePart = event.size != null ? ` · ${event.size}m²` : "";
   const roomsPart = event.rooms != null ? ` · ${event.rooms} חד׳` : "";
   const description = `Open House · ${event.date} ${event.startTime}–${event.endTime}${roomsPart}${sizePart}`;
-  // WhatsApp/Facebook unfurlers reject images >600KB and >1200px, but the
-  // upload code currently writes the same full-size URL into all three fields.
-  // The Firebase Resize ext does produce <name>_800x600.jpg in Storage, so we
-  // derive that URL from the full one until upload is fixed (TODO #16).
-  const photo = event.photos[0];
-  const image = deriveMediumImageUrl(photo);
+  // WhatsApp/Facebook unfurlers reject images >600KB and >1200px.
+  // previewUrlFor uses the stored medium when available, otherwise derives
+  // the resize-ext URL — this covers both new uploads (correct medium) and
+  // legacy events whose three slots all mirror full.
+  const image = previewUrlFor(event.photos[0]);
   return {
     title,
     description,
@@ -202,24 +202,6 @@ export default async function EventDetailPage({
       <Footer variant="compact" />
     </main>
   );
-}
-
-/** Returns an 800x600 (or original-medium) URL for OG/Twitter preview.
- *  Firebase Resize Images extension generates <name>_800x600.jpg next to the
- *  full upload, but the upload code stores the same URL in all three slots.
- *  We patch the URL by inserting `_800x600` before `.jpg` if the slots are
- *  identical, so unfurlers get a <100KB image instead of the 6MB original. */
-function deriveMediumImageUrl(
-  photo: { full?: string; medium?: string } | undefined
-): string {
-  if (!photo?.full) return "";
-  // If a real medium URL was stored, trust it.
-  if (photo.medium && photo.medium !== photo.full) return photo.medium;
-  // Otherwise rewrite "events%2F<id>%2F<name>.jpg?alt=media" →
-  //                  "events%2F<id>%2F<name>_800x600.jpg?alt=media".
-  // The ?alt=media query stays. Encoded slashes (%2F) and dots in <name>
-  // are preserved.
-  return photo.full.replace(/\.(jpe?g|png|webp)(\?|$)/i, "_800x600.$1$2");
 }
 
 function Stat({
