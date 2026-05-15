@@ -122,7 +122,9 @@ export default function AccessibilityMenu() {
         aria-label="פתח תפריט נגישות"
         aria-expanded={open}
         aria-controls="a11y-menu"
-        className="fixed bottom-4 start-4 z-[9000] w-12 h-12 rounded-full bg-[#0F62FE] text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-[#0F62FE] focus:ring-offset-2"
+        // Mobile: lift above the collapsed bottom-sheet handle (72px tall)
+        // and tuck in to the safe-area; Desktop: standard bottom-start corner.
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] md:bottom-4 start-3 md:start-4 z-[9000] w-11 h-11 md:w-12 md:h-12 rounded-full bg-[#0F62FE] text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-[#0F62FE] focus:ring-offset-2"
       >
         {/* Universal Access Symbol — recognised internationally */}
         <Accessibility className="w-6 h-6" strokeWidth={2.25} aria-hidden />
@@ -134,7 +136,7 @@ export default function AccessibilityMenu() {
           ref={menuRef}
           role="dialog"
           aria-label="תפריט נגישות"
-          className="fixed bottom-20 start-4 z-[9000] w-72 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl ring-1 ring-(--color-cream) p-4 space-y-3 text-(--color-deep)"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+9.5rem)] md:bottom-20 start-3 md:start-4 z-[9000] w-72 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-2xl ring-1 ring-(--color-cream) p-4 space-y-3 text-(--color-deep)"
           dir="rtl"
         >
           <div className="flex items-center justify-between">
