@@ -10,6 +10,7 @@
  * Toggles control CSS classes on <html> defined in globals.css.
  */
 import Link from "next/link";
+import { Accessibility } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const STORAGE_KEY = "a11y-prefs-v1";
@@ -121,18 +122,10 @@ export default function AccessibilityMenu() {
         aria-label="פתח תפריט נגישות"
         aria-expanded={open}
         aria-controls="a11y-menu"
-        className="fixed bottom-4 start-4 z-[9000] w-12 h-12 rounded-full bg-(--color-deep) text-(--color-ivory) shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-(--color-gold) focus:ring-offset-2"
+        className="fixed bottom-4 start-4 z-[9000] w-12 h-12 rounded-full bg-[#0F62FE] text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-[#0F62FE] focus:ring-offset-2"
       >
-        {/* Universal wheelchair / accessibility icon */}
-        <svg
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          fill="currentColor"
-          aria-hidden
-        >
-          <path d="M12 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm-1 6h2c.55 0 1 .45 1 1v3.5l3.5 1.75c.5.25.7.85.45 1.34-.25.5-.85.7-1.35.45L13 14.5V17l3 6h-2.2l-2.3-4.6c-.45.4-1 .6-1.5.6-1.93 0-3.5-1.57-3.5-3.5 0-1.46.9-2.71 2.18-3.23.83-.34 1.32-1.16 1.32-2.05V9c0-.55.45-1 1-1z" />
-        </svg>
+        {/* Universal Access Symbol — recognised internationally */}
+        <Accessibility className="w-6 h-6" strokeWidth={2.25} aria-hidden />
       </button>
 
       {open && (
