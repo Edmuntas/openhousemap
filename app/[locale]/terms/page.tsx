@@ -1,7 +1,7 @@
 import LegalShell from "@/components/layout/LegalShell";
 
 export const metadata = {
-  title: "תנאי שימוש | OpenHouse Map",
+  title: "תנאי שימוש",
   description:
     "תנאי השימוש בשירות OpenHouse Map — מפת בתים פתוחים לישראל.",
 };

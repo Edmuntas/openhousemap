@@ -1,7 +1,7 @@
 import LegalShell from "@/components/layout/LegalShell";
 
 export const metadata = {
-  title: "מדיניות עוגיות | OpenHouse Map",
+  title: "מדיניות עוגיות",
   description:
     "מדיניות העוגיות (Cookies) של OpenHouse Map — אילו עוגיות אנו משתמשים בהן ולמה.",
 };

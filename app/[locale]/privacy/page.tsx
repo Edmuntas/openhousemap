@@ -1,7 +1,7 @@
 import LegalShell from "@/components/layout/LegalShell";
 
 export const metadata = {
-  title: "מדיניות פרטיות | OpenHouse Map",
+  title: "מדיניות פרטיות",
   description:
     "מדיניות הפרטיות של OpenHouse Map — איסוף, שימוש ושמירה של מידע אישי בהתאם לחוק הגנת הפרטיות הישראלי.",
 };

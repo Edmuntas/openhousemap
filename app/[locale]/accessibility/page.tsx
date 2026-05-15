@@ -1,7 +1,7 @@
 import LegalShell from "@/components/layout/LegalShell";
 
 export const metadata = {
-  title: "הצהרת נגישות | OpenHouse Map",
+  title: "הצהרת נגישות",
   description:
     "הצהרת הנגישות של OpenHouse Map בהתאם לתקן הישראלי IS 5568 ו-WCAG 2.0 ברמה AA.",
 };
