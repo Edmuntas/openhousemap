@@ -409,6 +409,13 @@ export default function AddressPicker({ value, onChange }: Props) {
             if (street && v !== street.name) {
               setStreet(null);
               setHouseNumber("");
+              // Stale address would silently submit if user doesn't pick a new street.
+              onChangeRef.current({
+                address: "",
+                city: city?.name ?? "",
+                lat: null,
+                lng: null,
+              });
             }
             searchStreet(v);
           }}
