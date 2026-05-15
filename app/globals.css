@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Tell Tailwind v4 about classes added at runtime by JS so they survive
+   tree-shaking. Without this, the a11y modes (toggled via classList on
+   <html>) get pruned because no JSX statically references them. */
+@source inline("a11y-font-large a11y-font-larger a11y-high-contrast a11y-underline-links a11y-no-motion");
+
 /* ============================================
    OpenHouse Map — C3 Sage Premium Design Tokens
    ============================================ */
@@ -116,4 +121,76 @@ body {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* ============================================
+   Accessibility menu — user-toggled modes (IS 5568)
+   Classes are added to <html> by AccessibilityMenu.tsx and persisted in
+   localStorage. Implemented as plain CSS — no third-party overlay plugin
+   (per CLAUDE.md hard rule).
+   ============================================ */
+
+/* Font scaling — three steps, applied to root so rem-based sizes follow */
+html.a11y-font-large { font-size: 112.5%; } /* 18px base */
+html.a11y-font-larger { font-size: 125%; }  /* 20px base */
+
+/* High-contrast mode — black/yellow scheme used by Israeli a11y menus.
+   Overrides the C3 palette; intentionally aggressive so it's unambiguous
+   for low-vision users. */
+html.a11y-high-contrast,
+html.a11y-high-contrast body {
+  background: #000 !important;
+  color: #FFFF00 !important;
+}
+html.a11y-high-contrast a,
+html.a11y-high-contrast button,
+html.a11y-high-contrast h1,
+html.a11y-high-contrast h2,
+html.a11y-high-contrast h3,
+html.a11y-high-contrast p,
+html.a11y-high-contrast span,
+html.a11y-high-contrast li {
+  background: #000 !important;
+  color: #FFFF00 !important;
+  border-color: #FFFF00 !important;
+}
+html.a11y-high-contrast img {
+  filter: grayscale(1) contrast(1.2);
+}
+
+/* Underline every link — helps users who can't rely on color alone */
+html.a11y-underline-links a {
+  text-decoration: underline !important;
+  text-underline-offset: 2px;
+}
+
+/* Stop animations on demand — same effect as prefers-reduced-motion but
+   user-controlled even when the OS doesn't expose the setting */
+html.a11y-no-motion *,
+html.a11y-no-motion *::before,
+html.a11y-no-motion *::after {
+  transition: none !important;
+  animation: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* Skip-to-content link — required for keyboard navigation by IS 5568.
+   Hidden until focused; jumps over nav/banners straight to <main>. */
+.skip-to-content {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  padding: 0.75rem 1rem;
+  background: var(--color-deep);
+  color: var(--color-ivory);
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0.5rem;
+  transform: translateY(-110%);
+  transition: transform 150ms ease;
+  z-index: 9999;
+}
+.skip-to-content:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
 }
