@@ -5,7 +5,11 @@ export function wazeDeepLink(address: string): string {
 }
 
 export function whatsappShareLink(text: string, url: string): string {
-  return `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
+  return `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`;
+}
+
+export function facebookShareLink(url: string): string {
+  return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
 }
 
 interface ShareableEvent {
@@ -14,11 +18,22 @@ interface ShareableEvent {
   startTime: string;
   endTime: string;
   price: number;
+  rooms?: number | null;
 }
 
 /** Single source of truth for the WhatsApp / generic share text.
- *  Previously this template was duplicated byte-identical across
- *  EventPopup.tsx and EventActionsClient.tsx. */
+ *  Multi-line so RTL Hebrew lines and LTR numbers don't collide on one row
+ *  (the previous "Hebrew | digits | Hebrew" pipe-joined string rendered as
+ *  garbled bidi in WhatsApp). One concept per line — the unfurler's link
+ *  preview shows the OG image+title separately anyway. */
 export function buildShareText(event: ShareableEvent): string {
-  return `Open House: ${event.address} | ${event.date} ${event.startTime}–${event.endTime} | ${formatPrice(event.price)}`;
+  const lines = [
+    "🏠 בית פתוח",
+    event.address,
+    `📅 ${event.date} · ${event.startTime}–${event.endTime}`,
+    event.rooms != null
+      ? `${formatPrice(event.price)} · ${event.rooms} חד׳`
+      : formatPrice(event.price),
+  ];
+  return lines.join("\n");
 }
