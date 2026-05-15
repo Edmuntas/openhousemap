@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyEvents } from "@/hooks/useMyEvents";
 import { useEvents, type EventWithId } from "@/hooks/useEvents";
@@ -18,8 +19,10 @@ import {
   Home as HomeIcon,
   Award,
   CheckCircle2,
+  Clock,
+  XCircle,
 } from "lucide-react";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { formatPrice, todayIso } from "@/lib/utils";
 import DashboardEventCard from "./DashboardEventCard";
 
@@ -43,6 +46,26 @@ export default function DashboardClient() {
   const { events: allVisible, loading: loadingAll } = useEvents();
   const { items: myRsvps, loading: loadingRsvps } = useMyRsvps();
   const { eventIds: favIds, loading: loadingFavs } = useMyFavourites();
+
+  // Pending/rejected status surfaces a banner so users know the score; claims
+  // alone don't distinguish "never registered" from "registered but pending".
+  const [verificationStatus, setVerificationStatus] = useState<
+    "pending" | "verified" | "rejected" | null
+  >(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
+      const d = snap.data() as
+        | { verificationStatus?: string; rejectionReason?: string }
+        | undefined;
+      setVerificationStatus(
+        (d?.verificationStatus as "pending" | "verified" | "rejected") ?? null
+      );
+      setRejectionReason(d?.rejectionReason ?? null);
+    });
+    return () => unsub();
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -173,6 +196,60 @@ export default function DashboardClient() {
           </Link>
         </nav>
       </header>
+
+      {/* Verification banner — only when not yet verified.
+          Without this, pending users see a normal-looking dashboard and only
+          discover they can't publish when they hit the create form. */}
+      {!claims?.admin &&
+        !claims?.verified &&
+        verificationStatus === "pending" && (
+          <div
+            role="status"
+            className="flex items-start gap-3 bg-(--color-gold)/15 ring-1 ring-(--color-gold)/30 text-(--color-deep) p-3.5 rounded-2xl"
+          >
+            <Clock
+              className="w-5 h-5 text-(--color-gold) shrink-0 mt-0.5"
+              aria-hidden
+            />
+            <div className="text-sm leading-snug">
+              <strong className="font-semibold">החשבון בבדיקת אדמין.</strong>{" "}
+              לא ניתן לפרסם אירועים עד שמספר רישיון התיווך יאושר. בדרך כלל עד
+              48 שעות.
+            </div>
+          </div>
+        )}
+
+      {!claims?.admin &&
+        !claims?.verified &&
+        verificationStatus === "rejected" && (
+          <div
+            role="alert"
+            className="flex items-start gap-3 bg-(--vis-red)/10 ring-1 ring-(--vis-red)/30 text-(--color-deep) p-3.5 rounded-2xl"
+          >
+            <XCircle
+              className="w-5 h-5 text-(--vis-red) shrink-0 mt-0.5"
+              aria-hidden
+            />
+            <div className="text-sm leading-snug space-y-1">
+              <p>
+                <strong className="font-semibold">בקשת האימות נדחתה.</strong>
+              </p>
+              {rejectionReason && (
+                <p className="text-(--color-moss)">סיבה: {rejectionReason}</p>
+              )}
+              <p className="text-(--color-moss)">
+                לבירור פנה ל-
+                <a
+                  href="mailto:openhousemap@gmail.com?subject=ערעור על אימות"
+                  className="underline"
+                >
+                  openhousemap@gmail.com
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+        )}
 
       {/* Stat cards double as tabs — tap a card to switch the panel below.
           Active card gets the moss outline; counter doubles as both summary
