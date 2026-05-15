@@ -11,7 +11,7 @@ export default function TermsPage() {
     <LegalShell
       title="תנאי שימוש"
       subtitle="OpenHouse Map — תנאי השימוש בשירות"
-      lastUpdated="13 במאי 2026"
+      lastUpdated="15 במאי 2026"
     >
       <p>
         ברוכים הבאים ל-OpenHouse Map (להלן:{" "}

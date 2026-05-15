@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LegalShell from "@/components/layout/LegalShell";
 
 export const metadata = {
@@ -11,13 +12,13 @@ export default function CookiesPage() {
     <LegalShell
       title="מדיניות עוגיות"
       subtitle="OpenHouse Map — איך אנחנו משתמשים בעוגיות"
-      lastUpdated="13 במאי 2026"
+      lastUpdated="15 במאי 2026"
     >
       <p>
         מסמך זה מסביר אילו עוגיות (Cookies) ואחסון מקומי משמשים אותנו בשירות
         OpenHouse Map (להלן: <strong>&quot;השירות&quot;</strong>), מה הם עושים
         ואיך תוכל לשלוט בהם. מדיניות זו משלימה את{" "}
-        <a href="/privacy">מדיניות הפרטיות</a>.
+        <Link href="/privacy">מדיניות הפרטיות</Link>.
       </p>
 
       <h2>1. מהן עוגיות?</h2>

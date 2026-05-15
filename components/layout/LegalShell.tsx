@@ -13,7 +13,7 @@ export default function LegalShell({
   title,
   subtitle,
   lastUpdated,
-  draft = true,
+  draft = false,
   children,
 }: Props) {
   return (
